@@ -44,7 +44,7 @@ object Utilities {
   }
 
   def channelDelay(parameters: Configuration, c: ChannelType): Long = {
-    val paramName = s"${c.name.toUpperCase}ChannelDelay"
+    val paramName = s"${c}ChannelDelay"
     parameters.getLong(paramName, c.defaultDelay)
   }
 }
