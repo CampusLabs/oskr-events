@@ -23,6 +23,7 @@ Use the following commandline arguments to configure the job:
 | `pushChannelDelay` | `5000` | default delay before sending a message to push channel (ms) |
 | `smsChannelDelay` | `30000` | default delay before sending a message to SMS channel (ms) |
 | `emailChannelDelay` | `60000` | default delay before sending a message to email channel (ms) |
+| `dedupeCacheTime` | `60` | size of the message deduplication cache (minutes) |
 
 ## License
 

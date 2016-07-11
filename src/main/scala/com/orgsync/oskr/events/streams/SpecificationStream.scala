@@ -17,12 +17,7 @@
 package com.orgsync.oskr.events.streams
 
 import com.orgsync.oskr.events.Utilities
-import com.orgsync.oskr.events.messages.{
-BoundedSpecificationWatermarkAssigner,
-PeriodicSpecificationWatermarkAssigner,
-Specification,
-SpecificationParser
-}
+import com.orgsync.oskr.events.messages.{BoundedSpecificationWatermarkAssigner, PeriodicSpecificationWatermarkAssigner, Specification, SpecificationParser}
 import com.softwaremill.quicklens._
 import org.apache.flink.api.common.functions.RichFlatMapFunction
 import org.apache.flink.api.scala._
@@ -53,7 +48,7 @@ object SpecificationStream {
   val Ungrouped = "ungrouped"
 
   def getStream(
-    env          : StreamExecutionEnvironment,
+    env: StreamExecutionEnvironment,
     configuration: Configuration
   ): SplitStream[Specification] = {
     val specSource = new FlinkKafkaConsumer09[String](
@@ -72,10 +67,17 @@ object SpecificationStream {
         Time.milliseconds(configuration.getLong("maxSpecOutOfOrder", 5000))
       )
 
+    val dedupeCacheTime = configuration.getLong("dedupeCacheTime", 60)
+    val keyFunction = (s: Specification) => (s.id, s.recipientId)
+
     env
       .addSource(specSource)
       .flatMap(new ParseSpecification(configuration))
       .assignTimestampsAndWatermarks(watermarkAssigner)
+      .keyBy(keyFunction)
+      .filter(new DedupeFilterFunction[Specification, (String, String)](
+        keyFunction, dedupeCacheTime
+      ))
       .map(s => s.modify(_.channels).using(_.sortBy(_.delay)))
       .split(s =>
         (s.groupingKey, s.immediate) match {
