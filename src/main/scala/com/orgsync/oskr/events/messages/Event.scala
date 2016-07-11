@@ -31,12 +31,13 @@ import org.json4s.native.JsonMethods._
 import scala.util.{Failure, Success, Try}
 
 case class Event(
-  id        : String,
-  channel   : ChannelType,
-  action    : EventType,
-  occurredAt: Instant,
-  messageId : String,
-  data      : JObject
+  id         : String,
+  channel    : ChannelType,
+  action     : EventType,
+  occurredAt : Instant,
+  messageId  : String,
+  recipientId: String,
+  data       : JObject
 )
 
 object EventParser {

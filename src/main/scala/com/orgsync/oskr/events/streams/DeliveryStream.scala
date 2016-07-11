@@ -76,8 +76,8 @@ object DeliveryStream {
 
     specifications
       .coGroup(ackEvents)
-      .where(_.id)
-      .equalTo(_.messageId)
+      .where(s => (s.id, s.recipientId))
+      .equalTo(e => (e.messageId, e.recipientId))
       .window(GlobalWindows.create)
       .trigger(new ScheduleChannelTrigger)
       .apply(new AssignChannel)
