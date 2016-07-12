@@ -34,7 +34,6 @@ class DedupeFilterFunction[T, K <: Serializable](
 ) extends RichFilterFunction[T]
   with CheckpointedAsynchronously[util.HashSet[K]]
 {
-
   private var dedupeCache: LoadingCache[K, lang.Boolean] = _
 
   override def open(parameters: Configuration): Unit = {
