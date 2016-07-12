@@ -103,5 +103,6 @@
     <orderEntry type="library" name="Maven: org.scala-lang:scalap:2.11.0" level="project" />
     <orderEntry type="library" name="Maven: com.softwaremill.quicklens:quicklens_2.11:1.4.7" level="project" />
     <orderEntry type="library" name="Maven: com.google.guava:guava:19.0" level="project" />
+    <orderEntry type="library" name="Maven: com.github.jknack:handlebars.java:4.0.5" level="project" />
   </component>
 </module>
