@@ -41,7 +41,7 @@ final case class Part(
   immediate  : Option[Boolean],
   broadcast  : Option[Boolean],
   templates  : Array[TemplateSet],
-  data       : JObject
+  data       : JValue
 )
 
 class PartParser(parameters: Configuration) {

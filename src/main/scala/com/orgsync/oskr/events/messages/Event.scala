@@ -37,7 +37,7 @@ case class Event(
   occurredAt : Instant,
   messageId  : String,
   recipientId: String,
-  data       : JObject
+  data       : JValue
 )
 
 object EventParser {
