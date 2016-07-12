@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.orgsync.oskr.events.messages.specifications
+package com.orgsync.oskr.events.messages.parts
 
 import com.orgsync.oskr.events.Utilities
 import org.apache.flink.configuration.Configuration

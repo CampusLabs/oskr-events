@@ -18,7 +18,7 @@ package com.orgsync.oskr.events
 
 import java.util.Properties
 
-import com.orgsync.oskr.events.messages.specifications.ChannelType
+import com.orgsync.oskr.events.messages.parts.ChannelType
 import org.apache.flink.configuration.Configuration
 
 object Utilities {

@@ -17,7 +17,7 @@
 package com.orgsync.oskr.events.streams
 
 import com.orgsync.oskr.events.Utilities
-import com.orgsync.oskr.events.messages.{BoundedSpecificationWatermarkAssigner, PeriodicSpecificationWatermarkAssigner, Specification, SpecificationParser}
+import com.orgsync.oskr.events.messages.{BoundedPartWatermarkAssigner, PeriodicPartWatermarkAssigner, Part, PartParser}
 import com.softwaremill.quicklens._
 import org.apache.flink.api.common.functions.RichFlatMapFunction
 import org.apache.flink.api.scala._
@@ -28,21 +28,21 @@ import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer09
 import org.apache.flink.streaming.util.serialization.SimpleStringSchema
 import org.apache.flink.util.Collector
 
-class ParseSpecification(parameters: Configuration)
-  extends RichFlatMapFunction[String, Specification] {
+class ParsePart(parameters: Configuration)
+  extends RichFlatMapFunction[String, Part] {
 
-  var parser: SpecificationParser = _
+  var parser: PartParser = _
 
-  override def flatMap(json: String, out: Collector[Specification]): Unit = {
-    parser.parseSpecification(json).foreach(out.collect)
+  override def flatMap(json: String, out: Collector[Part]): Unit = {
+    parser.parsePart(json).foreach(out.collect)
   }
 
   override def open(parameters: Configuration): Unit = {
-    parser = new SpecificationParser(parameters)
+    parser = new PartParser(parameters)
   }
 }
 
-object SpecificationStream {
+object PartStream {
   val Immediate = "immediate"
   val Grouped = "grouped"
   val Ungrouped = "ungrouped"
@@ -50,32 +50,32 @@ object SpecificationStream {
   def getStream(
     env: StreamExecutionEnvironment,
     configuration: Configuration
-  ): SplitStream[Specification] = {
-    val specSource = new FlinkKafkaConsumer09[String](
-      configuration.getString("kafkaSpecificationTopic", "Specifications"),
+  ): SplitStream[Part] = {
+    val partSource = new FlinkKafkaConsumer09[String](
+      configuration.getString("kafkaPartTopic", "MessageParts"),
       new SimpleStringSchema,
       Utilities.kafkaProperties(configuration)
     )
 
     val watermarkFormat = Utilities.watermarks(configuration)
     val watermarkAssigner = if (watermarkFormat == 'periodic)
-      new PeriodicSpecificationWatermarkAssigner(
-        configuration.getLong("maxSpecLag", 5000)
+      new PeriodicPartWatermarkAssigner(
+        configuration.getLong("maxPartLag", 5000)
       )
     else
-      new BoundedSpecificationWatermarkAssigner(
-        Time.milliseconds(configuration.getLong("maxSpecOutOfOrder", 5000))
+      new BoundedPartWatermarkAssigner(
+        Time.milliseconds(configuration.getLong("maxPartOutOfOrder", 5000))
       )
 
     val dedupeCacheTime = configuration.getLong("dedupeCacheTime", 60)
-    val keyFunction = (s: Specification) => (s.id, s.recipientId)
+    val keyFunction = (s: Part) => (s.id, s.recipientId)
 
     env
-      .addSource(specSource)
-      .flatMap(new ParseSpecification(configuration))
+      .addSource(partSource)
+      .flatMap(new ParsePart(configuration))
       .assignTimestampsAndWatermarks(watermarkAssigner)
       .keyBy(keyFunction)
-      .filter(new DedupeFilterFunction[Specification, (String, String)](
+      .filter(new DedupeFilterFunction[Part, (String, String)](
         keyFunction, dedupeCacheTime
       ))
       .map(s => s.modify(_.channels).using(_.sortBy(_.delay)))

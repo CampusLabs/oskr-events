@@ -17,7 +17,7 @@
 package com.orgsync.oskr.events.streams.delivery
 
 import com.orgsync.oskr.events.messages.events.Acknowledgement
-import com.orgsync.oskr.events.messages.{Event, Specification}
+import com.orgsync.oskr.events.messages.{Event, Part}
 import org.apache.flink.api.common.state.ValueStateDescriptor
 import org.apache.flink.streaming.api.datastream.CoGroupedStreams.TaggedUnion
 import org.apache.flink.streaming.api.windowing.triggers.{Trigger, TriggerResult}
@@ -25,7 +25,7 @@ import org.apache.flink.streaming.api.windowing.triggers.Trigger.TriggerContext
 import org.apache.flink.streaming.api.windowing.windows.Window
 
 class ScheduleChannelTrigger[W <: Window]
-  extends Trigger[TaggedUnion[Specification, Event], W] {
+  extends Trigger[TaggedUnion[Part, Event], W] {
 
   private val countDescriptor = new ValueStateDescriptor(
     "triggerCount", classOf[Int], 0
@@ -40,7 +40,7 @@ class ScheduleChannelTrigger[W <: Window]
   )
 
   override def onElement(
-    t: TaggedUnion[Specification, Event],
+    t: TaggedUnion[Part, Event],
     timestamp     : Long,
     window        : W,
     triggerContext: TriggerContext
@@ -50,13 +50,13 @@ class ScheduleChannelTrigger[W <: Window]
     val acked = triggerContext.getPartitionedState(ackedDescription)
     val now = triggerContext.getCurrentProcessingTime
 
-    val specification = Option(t.getOne)
+    val part = Option(t.getOne)
     val event = Option(t.getTwo)
 
     event.foreach(e => if (e.action == Acknowledgement) acked.update(true))
 
     if (!initialized.value)
-      specification.foreach {
+      part.foreach {
         s =>
           initialized.update(true)
           triggerCount.update(s.channels.length)

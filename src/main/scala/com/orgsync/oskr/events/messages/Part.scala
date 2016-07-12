@@ -18,7 +18,7 @@ package com.orgsync.oskr.events.messages
 
 import java.time.Instant
 
-import com.orgsync.oskr.events.messages.specifications._
+import com.orgsync.oskr.events.messages.parts._
 import org.apache.flink.configuration.Configuration
 import org.apache.flink.streaming.api.functions.AssignerWithPeriodicWatermarks
 import org.apache.flink.streaming.api.functions.timestamps.BoundedOutOfOrdernessTimestampExtractor
@@ -29,7 +29,7 @@ import org.json4s.native.JsonMethods._
 
 import scala.util.{Failure, Success, Try}
 
-final case class Specification(
+final case class Part(
   id         : String,
   senderId   : String,
   recipientId: String,
@@ -44,15 +44,15 @@ final case class Specification(
   data       : JObject
 )
 
-class SpecificationParser(parameters: Configuration) {
+class PartParser(parameters: Configuration) {
   val channelAddressSerializer = new ChannelAddressSerializer(parameters)
 
   implicit val formats = DefaultFormats + InstantSerializer +
     ChannelTypeSerializer + channelAddressSerializer + TemplateFormatSerializer
 
-  def parseSpecification(json: String): Option[Specification] = {
+  def parsePart(json: String): Option[Part] = {
     val parsed = Try {
-      parse(json).extract[Specification]
+      parse(json).extract[Part]
     }
 
     parsed match {
@@ -64,15 +64,15 @@ class SpecificationParser(parameters: Configuration) {
   }
 }
 
-class BoundedSpecificationWatermarkAssigner(time: Time)
-  extends BoundedOutOfOrdernessTimestampExtractor[Specification](time) {
-  override def extractTimestamp(s: Specification) = s.sentAt.toEpochMilli
+class BoundedPartWatermarkAssigner(time: Time)
+  extends BoundedOutOfOrdernessTimestampExtractor[Part](time) {
+  override def extractTimestamp(s: Part) = s.sentAt.toEpochMilli
 }
 
-class PeriodicSpecificationWatermarkAssigner(maxTimeLag: Long)
-  extends AssignerWithPeriodicWatermarks[Specification] {
+class PeriodicPartWatermarkAssigner(maxTimeLag: Long)
+  extends AssignerWithPeriodicWatermarks[Part] {
 
-  override def extractTimestamp(s: Specification, previousTimestamp: Long) = {
+  override def extractTimestamp(s: Part, previousTimestamp: Long) = {
     s.sentAt.toEpochMilli
   }
 

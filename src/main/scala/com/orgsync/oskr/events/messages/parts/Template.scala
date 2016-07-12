@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.orgsync.oskr.events.messages.specifications
+package com.orgsync.oskr.events.messages.parts
 
 final case class Template(
   format: TemplateFormat,

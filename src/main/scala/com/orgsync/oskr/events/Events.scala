@@ -16,7 +16,7 @@
 
 package com.orgsync.oskr.events
 
-import com.orgsync.oskr.events.streams.{DeliveryStream, EventStream, SpecificationStream}
+import com.orgsync.oskr.events.streams.{DeliveryStream, EventStream, PartStream}
 import org.apache.flink.api.java.utils.ParameterTool
 import org.apache.flink.api.scala._
 import org.apache.flink.contrib.streaming.state.RocksDBStateBackend
@@ -36,12 +36,12 @@ object Events {
     val backend = new RocksDBStateBackend(statePath)
     env.setStateBackend(backend)
 
-    val specStream = SpecificationStream.getStream(env, configuration)
+    val partStream = PartStream.getStream(env, configuration)
     val eventStream = EventStream.getStream(env, configuration)
 
-    val immediateStream = specStream.select(SpecificationStream.Immediate)
-    val groupedStream = specStream.select(SpecificationStream.Grouped)
-    val ungroupedStream = specStream.select(SpecificationStream.Ungrouped)
+    val immediateStream = partStream.select(PartStream.Immediate)
+    val groupedStream = partStream.select(PartStream.Grouped)
+    val ungroupedStream = partStream.select(PartStream.Ungrouped)
 
     val sendStream = DeliveryStream.getstream(immediateStream, eventStream)
     sendStream.map(t => (t._1.id, t._2)).print

@@ -19,8 +19,8 @@ package com.orgsync.oskr.events.streams
 import java.lang.Iterable
 
 import com.orgsync.oskr.events.messages.events.Acknowledgement
-import com.orgsync.oskr.events.messages.specifications.ChannelAddress
-import com.orgsync.oskr.events.messages.{Event, Specification}
+import com.orgsync.oskr.events.messages.parts.ChannelAddress
+import com.orgsync.oskr.events.messages.{Event, Part}
 import com.orgsync.oskr.events.streams.delivery.ScheduleChannelTrigger
 import org.apache.flink.api.common.functions.RichCoGroupFunction
 import org.apache.flink.api.common.state.{ValueState, ValueStateDescriptor}
@@ -34,24 +34,24 @@ import scala.collection.JavaConverters._
 
 object DeliveryStream {
   private class AssignChannel
-    extends RichCoGroupFunction[Specification, Event, (Specification, ChannelAddress)] {
+    extends RichCoGroupFunction[Part, Event, (Part, ChannelAddress)] {
 
     var index: ValueState[Int] = _
 
     override def coGroup(
-      specifications: Iterable[Specification],
-      events        : Iterable[Event],
-      out           : Collector[(Specification, ChannelAddress)]
-    ): Unit = specifications.asScala.take(1).foreach { specification =>
+      parts : Iterable[Part],
+      events: Iterable[Event],
+      out   : Collector[(Part, ChannelAddress)]
+    ): Unit = parts.asScala.take(1).foreach { part =>
       val currentIndex = index.value
-      val channels = specification.channels
+      val channels = part.channels
       val channelCount = channels.length
       val acked = events.asScala.exists(_.action == Acknowledgement)
 
       if (acked)
         index.clear()
       else if (currentIndex < channelCount) {
-        out.collect((specification, channels(currentIndex)))
+        out.collect((part, channels(currentIndex)))
         index.update(currentIndex + 1)
 
         if (currentIndex == channelCount - 1)
@@ -69,12 +69,12 @@ object DeliveryStream {
   }
 
   def getstream(
-    specifications: DataStream[Specification],
+    parts : DataStream[Part],
     events: DataStream[Event]
-  ): DataStream[(Specification, ChannelAddress)] = {
+  ): DataStream[(Part, ChannelAddress)] = {
     val ackEvents = events.filter(_.action == Acknowledgement)
 
-    specifications
+    parts
       .coGroup(ackEvents)
       .where(s => (s.id, s.recipientId))
       .equalTo(e => (e.messageId, e.recipientId))

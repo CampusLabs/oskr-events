@@ -20,7 +20,7 @@ import java.time.Instant
 
 import com.orgsync.oskr.events.Utilities
 import com.orgsync.oskr.events.messages.events.{EventType, EventTypeSerializer}
-import com.orgsync.oskr.events.messages.specifications.{ChannelType, ChannelTypeSerializer}
+import com.orgsync.oskr.events.messages.parts.{ChannelType, ChannelTypeSerializer}
 import org.apache.flink.streaming.api.functions.AssignerWithPeriodicWatermarks
 import org.apache.flink.streaming.api.functions.timestamps.BoundedOutOfOrdernessTimestampExtractor
 import org.apache.flink.streaming.api.watermark.Watermark

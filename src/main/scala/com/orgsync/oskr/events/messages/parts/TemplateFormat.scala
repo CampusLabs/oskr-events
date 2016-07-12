@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.orgsync.oskr.events.messages.specifications
+package com.orgsync.oskr.events.messages.parts
 
 import org.json4s._
 

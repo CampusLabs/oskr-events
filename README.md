@@ -12,12 +12,12 @@ Use the following commandline arguments to configure the job:
 | `stateBackendPath` | `file:///tmp/state.db` | path to state database (file or HDFS) |
 | `kafkaBootstrap` | `kafka:9092` | Kafka broker bootstrap |
 | `kafkaGroup` | `oskr-events` | Kafka consumer group |
-| `kafkaSpecificationTopic` | `Specifications` | Kafka topic for incoming messages |
+| `kafkaPartTopic` | `MessageParts` | Kafka topic for incoming messages |
 | `kafkaEventTopic` | `Events` | Kafka topic for incoming events |
 | `watermarks` | `periodic` | event time watermarking strategy, either `periodic` or `bounded` |
-| `maxSpecOutOfOrder` | `1000` | for `bounded` strategy, maximum amount of time messages can be out of order (ms) |
+| `maxPartOutOfOrder` | `1000` | for `bounded` strategy, maximum amount of time messages can be out of order (ms) |
 | `maxEventOutOfOrder` | `1000` | for `bounded` strategy, maximum amount of time events can be out of order (ms) |
-| `maxSpecLag` | `5000` | for `periodic` strategy, maximum lag before a message is considered late (ms) |
+| `maxPartLag` | `5000` | for `periodic` strategy, maximum lag before a message is considered late (ms) |
 | `maxEventLag` | `5000` | for `periodic` strategy, maximum lag before an event is considered late (ms) |
 | `webChannelDelay` | `0` | default delay before sending a message to web channel (ms) |
 | `pushChannelDelay` | `5000` | default delay before sending a message to push channel (ms) |
