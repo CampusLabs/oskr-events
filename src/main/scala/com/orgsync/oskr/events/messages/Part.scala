@@ -38,7 +38,6 @@ final case class Part(
   groupingKey: Option[String],
   tags       : Option[Array[String]],
   digestAt   : Option[Boolean],
-  immediate  : Option[Boolean],
   broadcast  : Option[Boolean],
   templates  : Array[TemplateSet],
   data       : JValue

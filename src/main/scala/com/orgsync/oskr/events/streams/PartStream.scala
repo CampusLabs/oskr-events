@@ -43,7 +43,6 @@ class ParsePart(parameters: Configuration)
 }
 
 object PartStream {
-  val Immediate = "immediate"
   val Grouped = "grouped"
   val Ungrouped = "ungrouped"
 
@@ -80,10 +79,9 @@ object PartStream {
       ))
       .map(s => s.modify(_.channels).using(_.sortBy(_.delay)))
       .split(s =>
-        (s.groupingKey, s.immediate) match {
-          case (_, Some(true)) => List(Immediate)
-          case (Some(_), _) => List(Grouped)
-          case (None, _) => List(Ungrouped)
+        s.groupingKey match {
+          case Some(_) => List(Grouped)
+          case None => List(Ungrouped)
         }
       )
   }

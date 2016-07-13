@@ -39,11 +39,10 @@ object Events {
     val partStream = PartStream.getStream(env, configuration)
     val eventStream = EventStream.getStream(env, configuration)
 
-    val immediateStream = partStream.select(PartStream.Immediate)
     val groupedStream = partStream.select(PartStream.Grouped)
     val ungroupedStream = partStream.select(PartStream.Ungrouped)
 
-    val sendStream = DeliveryStream.getstream(immediateStream, eventStream)
+    val sendStream = DeliveryStream.getstream(ungroupedStream, eventStream)
     sendStream.map(t => (t._1.id, t._2)).print
 
     env.execute("oskr event processing")
