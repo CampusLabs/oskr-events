@@ -19,8 +19,7 @@ package com.orgsync.oskr.events.streams
 import java.lang.Iterable
 
 import com.orgsync.oskr.events.messages.events.Acknowledgement
-import com.orgsync.oskr.events.messages.parts.ChannelAddress
-import com.orgsync.oskr.events.messages.{Event, Part}
+import com.orgsync.oskr.events.messages.{Delivery, Event, Message}
 import com.orgsync.oskr.events.streams.delivery.ScheduleChannelTrigger
 import org.apache.flink.api.common.functions.RichCoGroupFunction
 import org.apache.flink.api.common.state.{ValueState, ValueStateDescriptor}
@@ -33,30 +32,37 @@ import org.apache.flink.util.Collector
 import scala.collection.JavaConverters._
 
 object DeliveryStream {
+
   private class AssignChannel
-    extends RichCoGroupFunction[Part, Event, (Part, ChannelAddress)] {
+    extends RichCoGroupFunction[Message, Event, Delivery] {
 
     var index: ValueState[Int] = _
 
     override def coGroup(
-      parts : Iterable[Part],
-      events: Iterable[Event],
-      out   : Collector[(Part, ChannelAddress)]
-    ): Unit = parts.asScala.take(1).foreach { part =>
-      val currentIndex = index.value
-      val channels = part.channels
-      val channelCount = channels.length
-      val acked = events.asScala.exists(_.action == Acknowledgement)
+      messages: Iterable[Message],
+      events  : Iterable[Event],
+      out     : Collector[Delivery]
+    ): Unit = messages.asScala.take(1).foreach {
+      message =>
+        val currentIndex = index.value
+        val channels = message.channels
+        val channelCount = channels.length
+        val acked = events.asScala.exists(_.action == Acknowledgement)
 
-      if (acked)
-        index.clear()
-      else if (currentIndex < channelCount) {
-        out.collect((part, channels(currentIndex)))
-        index.update(currentIndex + 1)
-
-        if (currentIndex == channelCount - 1)
+        if (acked)
           index.clear()
-      }
+        else if (currentIndex < channelCount) {
+          val delay = channels(currentIndex).delay
+          val triggers = channels.count(_.delay == delay)
+
+          0 until triggers foreach { i =>
+            val channelAddress = channels(currentIndex + i)
+            message.delivery(channelAddress).foreach(out.collect)
+          }
+
+          index.update(currentIndex + triggers)
+          if (currentIndex == channelCount - 1) index.clear()
+        }
     }
 
     override def open(parameters: Configuration): Unit = {
@@ -69,14 +75,14 @@ object DeliveryStream {
   }
 
   def getstream(
-    parts : DataStream[Part],
-    events: DataStream[Event]
-  ): DataStream[(Part, ChannelAddress)] = {
+    messages: DataStream[Message],
+    events  : DataStream[Event]
+  ): DataStream[Delivery] = {
     val ackEvents = events.filter(_.action == Acknowledgement)
 
-    parts
+    messages
       .coGroup(ackEvents)
-      .where(s => (s.id, s.recipientId))
+      .where(s => (s.id, s.recipient.id))
       .equalTo(e => (e.messageId, e.recipientId))
       .window(GlobalWindows.create)
       .trigger(new ScheduleChannelTrigger)

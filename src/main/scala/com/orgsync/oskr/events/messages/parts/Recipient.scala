@@ -16,28 +16,9 @@
 
 package com.orgsync.oskr.events.messages.parts
 
-import org.json4s._
+import org.json4s.JValue
 
-sealed trait TemplateFormat {
-  def name: String
-  def delivery(data: JArray): JValue
-}
-
-case object Handlebars extends TemplateFormat {
-  val name = "handlebars"
-
-  override def delivery(data: JArray): JValue = JString("")
-}
-
-case object PassThrough extends TemplateFormat {
-  val name = "none"
-
-  override def delivery(data: JArray): JValue = data
-}
-
-object TemplateFormatSerializer extends CustomSerializer[TemplateFormat](f => ( {
-  case JString(Handlebars.name) => Handlebars
-  case JString(PassThrough.name) => PassThrough
-}, {
-  case templateFormat: TemplateFormat => JString(templateFormat.name)
-}))
+case class Recipient(
+  id  : String,
+  data: JValue
+)

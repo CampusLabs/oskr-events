@@ -14,14 +14,10 @@
  * limitations under the License.
  */
 
-package com.orgsync.oskr.events.messages.parts
+package com.orgsync.oskr.events.streams.delivery
 
-import org.json4s.JValue
-import org.json4s.JsonAST.JArray
+import org.apache.flink.api.common.functions.RichMapFunction
 
-final case class Template(
-  format: TemplateFormat,
-  content: String
-) {
-  def render(parts: JArray): JValue = format.delivery(parts)
-}
+//class RenderHandlebarsTemplate extends RichMapFunction {
+//
+//}

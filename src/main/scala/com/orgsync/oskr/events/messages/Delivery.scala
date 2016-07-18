@@ -14,14 +14,20 @@
  * limitations under the License.
  */
 
-package com.orgsync.oskr.events.messages.parts
+package com.orgsync.oskr.events.messages
 
+import java.time.Instant
+
+import com.orgsync.oskr.events.messages.parts.{ChannelAddress, Recipient}
 import org.json4s.JValue
-import org.json4s.JsonAST.JArray
 
-final case class Template(
-  format: TemplateFormat,
-  content: String
-) {
-  def render(parts: JArray): JValue = format.delivery(parts)
-}
+case class Delivery(
+  id       : String,
+  senderId : String,
+  recipient: Recipient,
+  address  : ChannelAddress,
+  sentAt   : Instant,
+  tags     : Option[Array[String]],
+  broadcast: Option[Boolean],
+  content  : JValue
+)

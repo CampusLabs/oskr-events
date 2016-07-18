@@ -16,12 +16,17 @@
 
 package com.orgsync.oskr.events
 
+import com.orgsync.oskr.events.messages.{Message, Part, Parts}
+import com.orgsync.oskr.events.streams.grouping.PartGroupingWindows
 import com.orgsync.oskr.events.streams.{DeliveryStream, EventStream, PartStream}
-import org.apache.flink.api.java.utils.ParameterTool
 import org.apache.flink.api.scala._
+import org.apache.flink.api.java.utils.ParameterTool
 import org.apache.flink.contrib.streaming.state.RocksDBStateBackend
 import org.apache.flink.streaming.api.TimeCharacteristic
 import org.apache.flink.streaming.api.scala.StreamExecutionEnvironment
+import org.apache.flink.streaming.api.windowing.time.Time
+import org.apache.flink.streaming.api.windowing.windows.TimeWindow
+import org.apache.flink.util.Collector
 
 object Events {
   def main(args: Array[String]): Unit = {
@@ -39,11 +44,33 @@ object Events {
     val partStream = PartStream.getStream(env, configuration)
     val eventStream = EventStream.getStream(env, configuration)
 
-    val groupedStream = partStream.select(PartStream.Grouped)
-    val ungroupedStream = partStream.select(PartStream.Ungrouped)
+    val groupingGap = Time.minutes(parameters.getLong("groupingGap", 5))
+      .toMilliseconds
 
-    val sendStream = DeliveryStream.getstream(ungroupedStream, eventStream)
-    sendStream.map(t => (t._1.id, t._2)).print
+    val allowedLateness = Time.minutes(parameters.getLong("allowedLateness", 60))
+
+    val reducePartsWindow = (
+      key: (String, Option[String]),
+      w: TimeWindow,
+      parts: Iterable[Part],
+      out: Collector[Message]
+    ) => Parts.toMessage(parts).foreach(out.collect)
+
+    val groupedStream = partStream
+      .select(PartStream.Grouped)
+      .keyBy(p => (p.recipient.id, p.groupingKey))
+      .window(new PartGroupingWindows(groupingGap))
+      .allowedLateness(allowedLateness)
+      .apply(reducePartsWindow)
+
+    val ungroupedStream = partStream
+      .select(PartStream.Ungrouped)
+      .map(_.toMessage)
+
+    val messageStream = ungroupedStream.union(groupedStream)
+
+    val sendStream = DeliveryStream.getstream(messageStream, eventStream)
+    sendStream.map(m => (m.address, m.content)).print
 
     env.execute("oskr event processing")
   }

@@ -17,15 +17,16 @@
 package com.orgsync.oskr.events.streams.delivery
 
 import com.orgsync.oskr.events.messages.events.Acknowledgement
-import com.orgsync.oskr.events.messages.{Event, Part}
+import com.orgsync.oskr.events.messages.{Event, Message}
 import org.apache.flink.api.common.state.ValueStateDescriptor
 import org.apache.flink.streaming.api.datastream.CoGroupedStreams.TaggedUnion
 import org.apache.flink.streaming.api.windowing.triggers.{Trigger, TriggerResult}
 import org.apache.flink.streaming.api.windowing.triggers.Trigger.TriggerContext
 import org.apache.flink.streaming.api.windowing.windows.Window
+import scala.math.abs
 
 class ScheduleChannelTrigger[W <: Window]
-  extends Trigger[TaggedUnion[Part, Event], W] {
+  extends Trigger[TaggedUnion[Message, Event], W] {
 
   private val countDescriptor = new ValueStateDescriptor(
     "triggerCount", classOf[Int], 0
@@ -40,7 +41,7 @@ class ScheduleChannelTrigger[W <: Window]
   )
 
   override def onElement(
-    t: TaggedUnion[Part, Event],
+    t: TaggedUnion[Message, Event],
     timestamp     : Long,
     window        : W,
     triggerContext: TriggerContext
@@ -62,7 +63,7 @@ class ScheduleChannelTrigger[W <: Window]
           triggerCount.update(s.channels.length)
           s.channels.foreach {
             c =>
-              triggerContext.registerProcessingTimeTimer(now + c.delay)
+              triggerContext.registerProcessingTimeTimer(now + abs(c.delay))
           }
       }
 

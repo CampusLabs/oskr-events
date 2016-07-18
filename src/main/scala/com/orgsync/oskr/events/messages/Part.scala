@@ -19,11 +19,13 @@ package com.orgsync.oskr.events.messages
 import java.time.Instant
 
 import com.orgsync.oskr.events.messages.parts._
+import com.softwaremill.quicklens._
 import org.apache.flink.configuration.Configuration
 import org.apache.flink.streaming.api.functions.AssignerWithPeriodicWatermarks
 import org.apache.flink.streaming.api.functions.timestamps.BoundedOutOfOrdernessTimestampExtractor
 import org.apache.flink.streaming.api.watermark.Watermark
 import org.apache.flink.streaming.api.windowing.time.Time
+import org.json4s.JsonAST.JArray
 import org.json4s._
 import org.json4s.native.JsonMethods._
 
@@ -32,16 +34,33 @@ import scala.util.{Failure, Success, Try}
 final case class Part(
   id         : String,
   senderId   : String,
-  recipientId: String,
+  recipient  : Recipient,
   channels   : Array[ChannelAddress],
   sentAt     : Instant,
   groupingKey: Option[String],
+  groupingGap: Option[Long],
   tags       : Option[Array[String]],
   digestAt   : Option[Boolean],
   broadcast  : Option[Boolean],
   templates  : Array[TemplateSet],
   data       : JValue
-)
+) {
+  def toMessage: Message = Message(
+    id, senderId, recipient, channels, sentAt, tags, digestAt, broadcast,
+    templates, JArray(List(data))
+  )
+}
+
+object Parts {
+  def toMessage(parts: Iterable[Part]): Option[Message] = {
+    val partList = parts.toList
+
+    partList
+      .headOption
+      .map(_.toMessage)
+      .map(_.modify(_.parts).setTo(JArray(partList.map(_.data))))
+  }
+}
 
 class PartParser(parameters: Configuration) {
   val channelAddressSerializer = new ChannelAddressSerializer(parameters)

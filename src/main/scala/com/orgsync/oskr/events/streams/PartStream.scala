@@ -67,7 +67,7 @@ object PartStream {
       )
 
     val dedupeCacheTime = configuration.getLong("dedupeCacheTime", 60)
-    val keyFunction = (s: Part) => (s.id, s.recipientId)
+    val keyFunction = (s: Part) => (s.id, s.recipient.id)
 
     env
       .addSource(partSource)
