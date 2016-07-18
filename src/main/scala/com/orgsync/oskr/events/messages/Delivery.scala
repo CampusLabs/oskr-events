@@ -28,6 +28,6 @@ case class Delivery(
   address  : ChannelAddress,
   sentAt   : Instant,
   tags     : Option[Array[String]],
-  broadcast: Option[Boolean],
+  sourceIds: Array[String],
   content  : JValue
 )

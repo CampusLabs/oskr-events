@@ -70,7 +70,7 @@ object Events {
     val messageStream = ungroupedStream.union(groupedStream)
 
     val sendStream = DeliveryStream.getstream(messageStream, eventStream)
-    sendStream.map(m => (m.address, m.content)).print
+    sendStream.map(m => (m.address, m.sourceIds.toList)).print
 
     env.execute("oskr event processing")
   }

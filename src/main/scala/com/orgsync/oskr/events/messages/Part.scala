@@ -46,8 +46,8 @@ final case class Part(
   data       : JValue
 ) {
   def toMessage: Message = Message(
-    id, senderId, recipient, channels, sentAt, tags, digestAt, broadcast,
-    templates, JArray(List(data))
+    id, senderId, recipient, channels, sentAt, tags, digestAt, templates,
+    Array(id), JArray(List(data))
   )
 }
 
@@ -59,6 +59,7 @@ object Parts {
       .headOption
       .map(_.toMessage)
       .map(_.modify(_.parts).setTo(JArray(partList.map(_.data))))
+      .map(_.modify(_.sourceIds).setTo(partList.map(_.id).toArray))
   }
 }
 

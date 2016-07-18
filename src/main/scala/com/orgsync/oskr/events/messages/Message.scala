@@ -29,15 +29,15 @@ final case class Message(
   sentAt   : Instant,
   tags     : Option[Array[String]],
   digestAt : Option[Boolean],
-  broadcast: Option[Boolean],
   templates: Array[TemplateSet],
+  sourceIds: Array[String],
   parts    : JArray
 ) extends Deliverable {
   override def delivery(address: ChannelAddress): Option[Delivery] = {
     val template = templates.find(_.channel == address.channel).map(_.base)
     val content = template.map(_.render(parts))
     content.map(c => Delivery(
-      id, senderId, recipient, address, sentAt, tags, broadcast, c
+      id, senderId, recipient, address, sentAt, tags, sourceIds, c
     ))
   }
 }
