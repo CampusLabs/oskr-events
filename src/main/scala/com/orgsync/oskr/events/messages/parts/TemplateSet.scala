@@ -70,7 +70,7 @@ final case class TemplateSet(
       case TemplatePattern(name, body) => name match {
         case "handlebars" => JString(body)
         case "none" => JString(body)
-        case _ => JString(s)
+        case _ => JString(s) // TODO: Send error event
       }
       case _ => JString(s)
     }
