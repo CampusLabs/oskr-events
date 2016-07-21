@@ -27,6 +27,8 @@ import org.apache.flink.streaming.api.scala.StreamExecutionEnvironment
 import org.apache.flink.streaming.api.windowing.time.Time
 import org.apache.flink.streaming.api.windowing.windows.TimeWindow
 import org.apache.flink.util.Collector
+import org.json4s._
+import org.json4s.native.JsonMethods._
 
 object Events {
   def main(args: Array[String]): Unit = {
@@ -70,7 +72,10 @@ object Events {
     val messageStream = ungroupedStream.union(groupedStream)
 
     val sendStream = DeliveryStream.getstream(messageStream, eventStream)
-    sendStream.map(m => (m.address, m.sourceIds.toList, m.content)).print
+    sendStream.map(m => (
+      m.address,
+      m.sourceIds.toList,
+      compact(render(m.content)))).print
 
     env.execute("oskr event processing")
   }

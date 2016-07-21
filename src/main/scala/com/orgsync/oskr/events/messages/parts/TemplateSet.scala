@@ -58,8 +58,8 @@ final case class TemplateSet(
   }
 
   private def renderTemplate(template: JValue, data: JObject): JValue = {
-    template.transformField {
-      case JField(key, JString(s)) => (key, renderTemplateString(s, data))
+    template.transform {
+      case JString(s) => renderTemplateString(s, data)
     }
   }
 
