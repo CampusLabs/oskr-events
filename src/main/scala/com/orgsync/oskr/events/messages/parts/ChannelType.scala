@@ -17,6 +17,7 @@
 package com.orgsync.oskr.events.messages.parts
 
 import org.json4s._
+import org.json4s.native.JsonMethods._
 
 sealed trait ChannelType {
   def name: String
@@ -50,4 +51,13 @@ object ChannelTypeSerializer extends CustomSerializer[ChannelType](f => ( {
   case JString(Email.name) => Email
 }, {
   case channelType: ChannelType => JString(channelType.name)
+}))
+
+object ChannelTypeKeySerializer extends CustomKeySerializer[ChannelType](f => ( {
+  case s: String => {
+    implicit val formats = DefaultFormats + ChannelTypeSerializer
+    JString(s).extract[ChannelType]
+  }
+}, {
+  case x: ChannelType => x.name
 }))

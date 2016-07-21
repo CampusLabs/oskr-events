@@ -14,14 +14,11 @@
  * limitations under the License.
  */
 
-package com.orgsync.oskr.events.messages.parts
+package com.orgsync.oskr
 
+import com.orgsync.oskr.events.messages.parts.ChannelType
 import org.json4s.JValue
-import org.json4s.JsonAST.JArray
 
-final case class Template(
-  format: TemplateFormat,
-  content: String
-) {
-  def render(parts: JArray): JValue = format.delivery(parts)
+package object events {
+  type ChannelTemplateMap = Map[ChannelType, JValue]
 }

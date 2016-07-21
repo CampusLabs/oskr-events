@@ -16,9 +16,63 @@
 
 package com.orgsync.oskr.events.messages.parts
 
+import com.orgsync.oskr.events.ChannelTemplateMap
+import com.orgsync.oskr.events.messages.Message
+import org.json4s.JsonAST._
+
 final case class TemplateSet(
-  channel      : ChannelType,
-  base         : Template,
-  digestBase   : Template,
-  digestLayout : Template
-)
+  base        : ChannelTemplateMap,
+  digestBase  : ChannelTemplateMap,
+  digestLayout: ChannelTemplateMap
+) {
+  def renderBase(
+    address: ChannelAddress,
+    message: Message
+  ): Option[JValue] = renderChannelTemplate(
+    base, address.channel, message.recipient, message.parts
+  )
+
+  def renderDigest(
+    address : ChannelAddress,
+    messages: List[Message]
+  ): Option[JValue] = {
+    val data = messages.flatMap(message => renderChannelTemplate(
+      digestBase, address.channel, message.recipient, message.parts
+    ))
+
+    messages.headOption.flatMap(message => renderChannelTemplate(
+      digestLayout, address.channel, message.recipient, JArray(data)
+    ))
+  }
+
+  private def renderChannelTemplate(
+    templates: ChannelTemplateMap,
+    channel  : ChannelType,
+    recipient: Recipient,
+    data     : JArray
+  ): Option[JValue] = {
+    val template = templates.get(channel)
+    val value = JObject(("recipient", recipient.data) :: ("data", data) :: Nil)
+
+    template.map(t => renderTemplate(t, value))
+  }
+
+  private def renderTemplate(template: JValue, data: JObject): JValue = {
+    template.transformField {
+      case JField(key, JString(s)) => (key, renderTemplateString(s, data))
+    }
+  }
+
+  private val TemplatePattern = """\Atemplate/([a-zA-Z0-9]+):(.*)\z""".r
+
+  private def renderTemplateString(s: String, data: JObject): JString = {
+    s match {
+      case TemplatePattern(name, body) => name match {
+        case "handlebars" => JString(body)
+        case "none" => JString(body)
+        case _ => JString(s)
+      }
+      case _ => JString(s)
+    }
+  }
+}

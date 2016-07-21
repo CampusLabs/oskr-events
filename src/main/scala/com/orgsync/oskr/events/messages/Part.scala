@@ -42,7 +42,7 @@ final case class Part(
   tags       : Option[Array[String]],
   digestAt   : Option[Boolean],
   broadcast  : Option[Boolean],
-  templates  : Array[TemplateSet],
+  templates  : TemplateSet,
   data       : JValue
 ) {
   def toMessage: Message = Message(
@@ -67,7 +67,7 @@ class PartParser(parameters: Configuration) {
   val channelAddressSerializer = new ChannelAddressSerializer(parameters)
 
   implicit val formats = DefaultFormats + InstantSerializer +
-    ChannelTypeSerializer + channelAddressSerializer + TemplateFormatSerializer
+    ChannelTypeSerializer + channelAddressSerializer + ChannelTypeKeySerializer
 
   def parsePart(json: String): Option[Part] = {
     val parsed = Try {
