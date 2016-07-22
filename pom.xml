@@ -47,26 +47,31 @@
         </pluginRepository>
     </pluginRepositories>
 
+    <properties>
+        <flinkVersion>1.1-SNAPSHOT</flinkVersion>
+        <handlebarsVersion>4.0.5</handlebarsVersion>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-streaming-scala_2.11</artifactId>
-            <version>1.1-SNAPSHOT</version>
+            <version>${flinkVersion}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-connector-kafka-0.9_2.11</artifactId>
-            <version>1.1-SNAPSHOT</version>
+            <version>${flinkVersion}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-statebackend-rocksdb_2.11</artifactId>
-            <version>1.1-SNAPSHOT</version>
+            <version>${flinkVersion}</version>
         </dependency>
         <dependency>
             <groupId>org.json4s</groupId>
-            <artifactId>json4s-native_2.11</artifactId>
-            <version>3.2.11</version>
+            <artifactId>json4s-jackson_2.11</artifactId>
+            <version>3.4.0</version>
         </dependency>
         <dependency>
             <groupId>com.softwaremill.quicklens</groupId>
@@ -81,7 +86,17 @@
         <dependency>
             <groupId>com.github.jknack</groupId>
             <artifactId>handlebars.java</artifactId>
-            <version>4.0.5</version>
+            <version>${handlebarsVersion}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.jknack</groupId>
+            <artifactId>handlebars-guava-cache</artifactId>
+            <version>${handlebarsVersion}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.jknack</groupId>
+            <artifactId>handlebars-jackson2</artifactId>
+            <version>${handlebarsVersion}</version>
         </dependency>
     </dependencies>
 

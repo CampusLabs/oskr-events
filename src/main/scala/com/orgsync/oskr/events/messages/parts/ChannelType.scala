@@ -17,7 +17,7 @@
 package com.orgsync.oskr.events.messages.parts
 
 import org.json4s._
-import org.json4s.native.JsonMethods._
+import org.json4s.jackson.JsonMethods._
 
 sealed trait ChannelType {
   def name: String

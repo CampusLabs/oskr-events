@@ -20,7 +20,7 @@ import java.lang.Iterable
 
 import com.orgsync.oskr.events.messages.events.Acknowledgement
 import com.orgsync.oskr.events.messages.{Delivery, Event, Message}
-import com.orgsync.oskr.events.streams.delivery.ScheduleChannelTrigger
+import com.orgsync.oskr.events.streams.delivery.{ScheduleChannelTrigger, TemplateCache}
 import org.apache.flink.api.common.functions.RichCoGroupFunction
 import org.apache.flink.api.common.state.{ValueState, ValueStateDescriptor}
 import org.apache.flink.api.scala._
@@ -37,6 +37,7 @@ object DeliveryStream {
     extends RichCoGroupFunction[Message, Event, Delivery] {
 
     var index: ValueState[Int] = _
+    var cache: TemplateCache = _
 
     override def coGroup(
       messages: Iterable[Message],
@@ -57,7 +58,7 @@ object DeliveryStream {
 
           0 until triggers foreach { i =>
             val channelAddress = channels(currentIndex + i)
-            message.delivery(channelAddress).foreach(out.collect)
+            message.delivery(channelAddress, cache).foreach(out.collect)
           }
 
           index.update(currentIndex + triggers)
@@ -71,10 +72,11 @@ object DeliveryStream {
       )
 
       index = getRuntimeContext.getState(descriptor)
+      cache = new TemplateCache
     }
   }
 
-  def getstream(
+  def getStream(
     messages: DataStream[Message],
     events  : DataStream[Event]
   ): DataStream[Delivery] = {

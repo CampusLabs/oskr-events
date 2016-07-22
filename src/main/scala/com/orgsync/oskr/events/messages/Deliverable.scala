@@ -17,7 +17,8 @@
 package com.orgsync.oskr.events.messages
 
 import com.orgsync.oskr.events.messages.parts.ChannelAddress
+import com.orgsync.oskr.events.streams.delivery.TemplateCache
 
 trait Deliverable {
-  def delivery(address: ChannelAddress): Option[Delivery]
+  def delivery(address: ChannelAddress, cache: TemplateCache): Option[Delivery]
 }
