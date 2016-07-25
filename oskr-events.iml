@@ -103,11 +103,10 @@
     <orderEntry type="library" name="Maven: com.fasterxml.jackson.core:jackson-core:2.6.7" level="project" />
     <orderEntry type="library" name="Maven: com.softwaremill.quicklens:quicklens_2.11:1.4.7" level="project" />
     <orderEntry type="library" name="Maven: com.google.guava:guava:19.0" level="project" />
-    <orderEntry type="library" name="Maven: com.github.jknack:handlebars.java:4.0.5" level="project" />
-    <orderEntry type="library" name="Maven: com.github.jknack:handlebars-guava-cache:4.0.5" level="project" />
     <orderEntry type="library" name="Maven: com.github.jknack:handlebars:4.0.5" level="project" />
     <orderEntry type="library" name="Maven: org.antlr:antlr4-runtime:4.5.1-1" level="project" />
     <orderEntry type="library" name="Maven: org.mozilla:rhino:1.7R4" level="project" />
+    <orderEntry type="library" name="Maven: com.github.jknack:handlebars-guava-cache:4.0.5" level="project" />
     <orderEntry type="library" name="Maven: com.github.jknack:handlebars-jackson2:4.0.5" level="project" />
   </component>
 </module>

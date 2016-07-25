@@ -85,7 +85,7 @@
         </dependency>
         <dependency>
             <groupId>com.github.jknack</groupId>
-            <artifactId>handlebars.java</artifactId>
+            <artifactId>handlebars</artifactId>
             <version>${handlebarsVersion}</version>
         </dependency>
         <dependency>
