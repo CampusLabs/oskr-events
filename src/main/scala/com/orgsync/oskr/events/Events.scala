@@ -33,7 +33,7 @@ object Events {
     env.enableCheckpointing(parameters.getLong("checkpointInterval", 5000))
     env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime)
 
-    val statePath = parameters.get("stateBackendPath", "file:///tmp/state.db")
+    val statePath = parameters.get("stateBackendPath", "file:///tmp/oskr")
     val backend = new RocksDBStateBackend(statePath)
     env.setStateBackend(backend)
 

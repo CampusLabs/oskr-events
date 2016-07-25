@@ -54,6 +54,7 @@ class DedupeFilterFunction[T, K <: Serializable](
   }
 
   override def snapshotState(l: Long, l1: Long): util.HashSet[K] = {
+    dedupeCache.cleanUp()
     new util.HashSet[K](dedupeCache.asMap().keySet)
   }
 
@@ -63,7 +64,7 @@ class DedupeFilterFunction[T, K <: Serializable](
     }
 
     dedupeCache = CacheBuilder.newBuilder
-      .expireAfterAccess(maxTimeMin, TimeUnit.MINUTES)
+      .expireAfterWrite(maxTimeMin, TimeUnit.MINUTES)
       .build(cacheLoader).asInstanceOf[LoadingCache[K, lang.Boolean]]
   }
 }
