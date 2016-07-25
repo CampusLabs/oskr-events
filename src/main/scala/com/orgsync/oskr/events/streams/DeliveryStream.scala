@@ -89,5 +89,6 @@ object DeliveryStream {
       .window(GlobalWindows.create)
       .trigger(new ScheduleChannelTrigger)
       .apply(new AssignChannel)
+      .uid("deliveries")
   }
 }

@@ -55,6 +55,7 @@ object EventStream {
 
     env
       .addSource(eventSource)
+      .uid("event source")
       .flatMap(eventParser(_))
       .assignTimestampsAndWatermarks(watermarkAssigner)
       .keyBy(_.messageId)

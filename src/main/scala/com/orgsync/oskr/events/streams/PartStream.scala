@@ -71,12 +71,14 @@ object PartStream {
 
     env
       .addSource(partSource)
+      .uid("part source")
       .flatMap(new ParsePart(configuration))
       .assignTimestampsAndWatermarks(watermarkAssigner)
       .keyBy(keyFunction)
       .filter(new DedupeFilterFunction[Part, (String, String)](
         keyFunction, dedupeCacheTime
       ))
+      .uid("deduplicate parts")
       .map(s => s.modify(_.channels).using(_.sortBy(_.delay)))
       .split(s =>
         s.groupingKey match {

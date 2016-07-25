@@ -44,5 +44,6 @@ class GroupStream(parameters: ParameterTool) {
       .window(new PartGroupingWindows(groupingGap))
       .allowedLateness(allowedLateness)
       .apply(reducePartsWindow)
+      .uid("grouped messages")
   }
 }
