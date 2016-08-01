@@ -25,7 +25,7 @@ case class Delivery(
   channel    : String,
   senderId   : String,
   recipientId: String,
-  deliveredAt: Instant,
+  at         : Instant,
   tags       : Option[Array[String]],
   partIds    : Array[String],
   content    : JValue

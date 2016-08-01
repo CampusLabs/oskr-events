@@ -32,10 +32,9 @@ import org.json4s.ext.UUIDSerializer
 import scala.util.{Failure, Success, Try}
 
 case class Event(
-  id        : String,
   deliveryId: UUID,
   action    : EventType,
-  occurredAt: Instant,
+  at        : Instant,
   data      : JValue
 )
 
@@ -59,14 +58,14 @@ object EventParser {
 
 class BoundedEventWatermarkAssigner(bound: Long)
   extends BoundedOutOfOrdernessTimestampExtractor[Event](Time.milliseconds(bound)) {
-  override def extractTimestamp(s: Event) = s.occurredAt.toEpochMilli
+  override def extractTimestamp(s: Event) = s.at.toEpochMilli
 }
 
 class PeriodicEventWatermarkAssigner(maxTimeLag: Long)
   extends AssignerWithPeriodicWatermarks[Event] {
 
   override def extractTimestamp(s: Event, previousTimestamp: Long) = {
-    s.occurredAt.toEpochMilli
+    s.at.toEpochMilli
   }
 
   override def getCurrentWatermark: Watermark = {
