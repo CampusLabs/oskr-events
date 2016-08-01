@@ -31,7 +31,7 @@ final case class TemplateSet(
     message: Message,
     cache  : TemplateCache
   ): Option[JValue] = renderChannelTemplate(
-    base, address.channel, message.recipient, message.parts, cache
+    base, address, message.recipient, message.parts, cache
   )
 
   def renderDigest(
@@ -40,23 +40,26 @@ final case class TemplateSet(
     cache   : TemplateCache
   ): Option[JValue] = {
     val data = messages.flatMap(message => renderChannelTemplate(
-      digestBase, address.channel, message.recipient, message.parts, cache
+      digestBase, address, message.recipient, message.parts, cache
     ))
 
     messages.headOption.flatMap(message => renderChannelTemplate(
-      digestLayout, address.channel, message.recipient, JArray(data), cache
+      digestLayout, address, message.recipient, JArray(data), cache
     ))
   }
 
   private def renderChannelTemplate(
     templates: ChannelTemplateMap,
-    channel  : ChannelType,
+    address  : ChannelAddress,
     recipient: Recipient,
     data     : JArray,
     cache    : TemplateCache
   ): Option[JValue] = {
-    val template = templates.get(channel)
-    val value = JObject(("recipient", recipient.data) :: ("data", data) :: Nil)
+    val template = templates.get(address.channel)
+    val value = JObject(
+      ("recipient", recipient.data) ::
+        ("data", data) ::
+        ("address", JString(address.address)) :: Nil)
 
     template.map(t => renderTemplate(t, value, cache))
   }
@@ -67,24 +70,20 @@ final case class TemplateSet(
     cache   : TemplateCache
   ): JValue = {
     template.transform {
-      case JString(s) => renderTemplateString(s, data, cache)
+      case JObject(List((templateName: String, JString(s)))) =>
+        JString(renderTemplateString(templateName, s, data, cache))
     }
   }
 
-  private val TemplatePattern = """\Atemplate/([a-zA-Z0-9]+):(.*)\z""".r
-
   private def renderTemplateString(
-    s    : String,
-    data : JObject,
-    cache: TemplateCache
-  ): JString = {
-    s match {
-      case TemplatePattern(name, body) => name match {
-        case "handlebars" => cache.renderHandlebars(body, data)
-        case "none" => JString(body)
-        case _ => JString(s) // TODO: Send error event
-      }
-      case _ => JString(s)
+    templateName: String,
+    template    : String,
+    data        : JObject,
+    cache       : TemplateCache
+  ): String = {
+    templateName match {
+      case "template/handlebars" => cache.renderHandlebars(template, data)
+      case _ => template
     }
   }
 }

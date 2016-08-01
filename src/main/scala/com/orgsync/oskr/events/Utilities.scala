@@ -16,21 +16,32 @@
 
 package com.orgsync.oskr.events
 
+import java.time.Duration
 import java.util.Properties
 
 import com.orgsync.oskr.events.messages.parts.ChannelType
 import org.apache.flink.configuration.Configuration
 
 object Utilities {
-  def kafkaProperties(parameters: Configuration): Properties = {
+  def kafkaConsumerProperties(parameters: Configuration): Properties = {
     val properties = new Properties
-
-    val bootstrapServers = parameters.getString("kafkaBootstrap", "kafka:9092")
     val groupId = parameters.getString("kafkaGroup", "oskr-events")
 
-    properties.setProperty("bootstrap.servers", bootstrapServers)
+    properties.setProperty("bootstrap.servers", kafkaBootstrap(parameters))
     properties.setProperty("group.id", groupId)
     properties.setProperty("auto.offset.reset", "earliest")
+
+    properties
+  }
+
+  def kafkaProducerProperties(parameters: Configuration) : Properties = {
+    val properties = new Properties
+
+    properties.setProperty("bootstrap.servers", kafkaBootstrap(parameters))
+    properties.setProperty("acks", "all")
+    properties.setProperty("compression.type", "gzip")
+    properties.setProperty("retries", "2147483647")
+    properties.setProperty("client.id", "oskr event processor")
 
     properties
   }
@@ -43,8 +54,12 @@ object Utilities {
     }
   }
 
-  def channelDelay(parameters: Configuration, c: ChannelType): Long = {
+  def channelDelay(parameters: Configuration, c: ChannelType): Duration = {
     val paramName = s"${c}ChannelDelay"
-    parameters.getLong(paramName, c.defaultDelay)
+    Duration.parse(parameters.getString(paramName, c.defaultDelay))
+  }
+
+  private def kafkaBootstrap(parameters: Configuration): String = {
+    parameters.getString("kafkaBootstrap", "kafka:9092")
   }
 }

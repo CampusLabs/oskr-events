@@ -24,7 +24,7 @@ import com.github.jknack.handlebars.context.MapValueResolver
 import com.github.jknack.handlebars.io.TemplateSource
 import com.google.common.cache.CacheBuilder
 import org.json4s.jackson.JsonMethods.asJsonNode
-import org.json4s.JsonAST.{JObject, JString}
+import org.json4s.JsonAST.JObject
 
 class TemplateCache {
   private val handlebarsCache = CacheBuilder
@@ -36,7 +36,7 @@ class TemplateCache {
   private val handlebars = new Handlebars()
     .`with`(new GuavaTemplateCache(handlebarsCache))
 
-  def renderHandlebars(template: String, context: JObject): JString = {
+  def renderHandlebars(template: String, context: JObject): String = {
     val node = asJsonNode(context)
     val json = Context.newBuilder(node).resolver(
       JsonNodeValueResolver.INSTANCE,
@@ -44,6 +44,6 @@ class TemplateCache {
     ).build
     val compiled = handlebars.compileInline(template)
 
-    JString(compiled.apply(json))
+    compiled.apply(json)
   }
 }

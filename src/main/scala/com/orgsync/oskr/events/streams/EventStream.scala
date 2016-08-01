@@ -16,17 +16,13 @@
 
 package com.orgsync.oskr.events.streams
 
+import java.time.Duration
+
 import com.orgsync.oskr.events.Utilities
-import com.orgsync.oskr.events.messages.{
-  BoundedEventWatermarkAssigner,
-  Event,
-  EventParser,
-  PeriodicEventWatermarkAssigner
-}
+import com.orgsync.oskr.events.messages.{BoundedEventWatermarkAssigner, Event, EventParser, PeriodicEventWatermarkAssigner}
 import org.apache.flink.api.scala._
 import org.apache.flink.configuration.Configuration
 import org.apache.flink.streaming.api.scala.{DataStream, StreamExecutionEnvironment}
-import org.apache.flink.streaming.api.windowing.time.Time
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer09
 import org.apache.flink.streaming.util.serialization.SimpleStringSchema
 
@@ -34,23 +30,23 @@ object EventStream {
   private val eventParser = EventParser.parseEvent _
 
   def getStream(
-    env            : StreamExecutionEnvironment,
-    configuration  : Configuration
+    env          : StreamExecutionEnvironment,
+    configuration: Configuration
   ): DataStream[Event] = {
     val eventSource = new FlinkKafkaConsumer09[String](
       configuration.getString("kafkaEventTopic", "Events"),
       new SimpleStringSchema,
-      Utilities.kafkaProperties(configuration)
+      Utilities.kafkaConsumerProperties(configuration)
     )
 
     val watermarkFormat = Utilities.watermarks(configuration)
     val watermarkAssigner = if (watermarkFormat == 'periodic)
       new PeriodicEventWatermarkAssigner(
-        configuration.getLong("maxEventLag", 5000)
+        Duration.parse(configuration.getString("maxEventLag", "PT5S")).toMillis
       )
     else
       new BoundedEventWatermarkAssigner(
-        Time.milliseconds(configuration.getLong("maxEventOutOfOrder", 5000))
+        Duration.parse(configuration.getString("maxEventOutOfOrder", "PT5S")).toMillis
       )
 
     env
@@ -58,6 +54,5 @@ object EventStream {
       .uid("event source")
       .flatMap(eventParser(_))
       .assignTimestampsAndWatermarks(watermarkAssigner)
-      .keyBy(_.messageId)
   }
 }

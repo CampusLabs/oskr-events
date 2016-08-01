@@ -14,10 +14,15 @@
  * limitations under the License.
  */
 
-package com.orgsync.oskr.events.streams.delivery
+package com.orgsync.oskr.events.messages
 
-import org.apache.flink.api.common.functions.RichMapFunction
+import java.time.Duration
 
-//class RenderHandlebarsTemplate extends RichMapFunction {
-//
-//}
+import org.json4s._
+
+object DurationSerializer extends CustomSerializer[Duration](f =>
+  ( {
+    case JString(s) => Duration.parse(s)
+  }, {
+    case d: Duration => JString(d.toString)
+  }))

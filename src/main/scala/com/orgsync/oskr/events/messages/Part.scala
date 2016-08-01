@@ -16,7 +16,8 @@
 
 package com.orgsync.oskr.events.messages
 
-import java.time.Instant
+import java.time.{Duration, Instant}
+import java.util.UUID
 
 import com.orgsync.oskr.events.messages.parts._
 import com.softwaremill.quicklens._
@@ -38,16 +39,16 @@ final case class Part(
   channels   : Array[ChannelAddress],
   sentAt     : Instant,
   groupingKey: Option[String],
-  groupingGap: Option[Long],
+  groupingGap: Option[Duration],
   tags       : Option[Array[String]],
-  digestAt   : Option[Boolean],
-  broadcast  : Option[Boolean],
+  digestKey  : Option[String],
+  digestAt   : Option[Instant],
   templates  : TemplateSet,
   data       : JValue
 ) {
   def toMessage: Message = Message(
-    id, senderId, recipient, channels, sentAt, tags, digestAt, templates,
-    Array(id), JArray(List(data))
+    UUID.randomUUID, senderId, recipient, channels, sentAt, tags,
+    digestKey, digestAt, templates, Array(id), JArray(List(data))
   )
 }
 
@@ -59,7 +60,7 @@ object Parts {
       .headOption
       .map(_.toMessage)
       .map(_.modify(_.parts).setTo(JArray(partList.map(_.data))))
-      .map(_.modify(_.sourceIds).setTo(partList.map(_.id).toArray))
+      .map(_.modify(_.partIds).setTo(partList.map(_.id).toArray))
   }
 }
 
@@ -67,7 +68,8 @@ class PartParser(parameters: Configuration) {
   val channelAddressSerializer = new ChannelAddressSerializer(parameters)
 
   implicit val formats = DefaultFormats + InstantSerializer +
-    ChannelTypeSerializer + channelAddressSerializer + ChannelTypeKeySerializer
+    DurationSerializer + ChannelTypeSerializer + channelAddressSerializer +
+    ChannelTypeKeySerializer
 
   def parsePart(json: String): Option[Part] = {
     val parsed = Try {
@@ -83,8 +85,8 @@ class PartParser(parameters: Configuration) {
   }
 }
 
-class BoundedPartWatermarkAssigner(time: Time)
-  extends BoundedOutOfOrdernessTimestampExtractor[Part](time) {
+class BoundedPartWatermarkAssigner(bound: Long)
+  extends BoundedOutOfOrdernessTimestampExtractor[Part](Time.days(bound)) {
   override def extractTimestamp(s: Part) = s.sentAt.toEpochMilli
 }
 

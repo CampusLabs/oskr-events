@@ -14,19 +14,17 @@
  * limitations under the License.
  */
 
-package com.orgsync.oskr.events.messages
+package com.orgsync.oskr.events.streams
 
-import java.time.Instant
+import com.orgsync.oskr.events.Utilities
+import org.apache.flink.configuration.Configuration
+import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer09
+import org.apache.flink.streaming.util.serialization.SimpleStringSchema
 
-import org.json4s.JValue
-
-case class Delivery(
-  id         : String,
-  channel    : String,
-  senderId   : String,
-  recipientId: String,
-  deliveredAt: Instant,
-  tags       : Option[Array[String]],
-  partIds    : Array[String],
-  content    : JValue
-)
+class KafkaSink(parameters: Configuration) {
+  def sink(topic: String): FlinkKafkaProducer09[String] = {
+    new FlinkKafkaProducer09(
+      topic, new SimpleStringSchema, Utilities.kafkaProducerProperties(parameters)
+    )
+  }
+}

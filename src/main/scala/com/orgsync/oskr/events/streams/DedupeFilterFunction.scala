@@ -18,6 +18,7 @@ package com.orgsync.oskr.events.streams
 
 import java.io.Serializable
 import java.lang
+import java.time.Duration
 import java.util
 import java.util.concurrent.TimeUnit
 
@@ -30,7 +31,7 @@ import scala.collection.JavaConverters._
 
 class DedupeFilterFunction[T, K <: Serializable](
   keySelector: T => K,
-  maxTimeMin: Long
+  expiration : Duration
 ) extends RichFilterFunction[T]
   with CheckpointedAsynchronously[util.HashSet[K]]
 {
@@ -64,7 +65,7 @@ class DedupeFilterFunction[T, K <: Serializable](
     }
 
     dedupeCache = CacheBuilder.newBuilder
-      .expireAfterWrite(maxTimeMin, TimeUnit.MINUTES)
+      .expireAfterWrite(expiration.toMillis, TimeUnit.MILLISECONDS)
       .build(cacheLoader).asInstanceOf[LoadingCache[K, lang.Boolean]]
   }
 }

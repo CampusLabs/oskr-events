@@ -50,6 +50,7 @@
     <properties>
         <flinkVersion>1.1-SNAPSHOT</flinkVersion>
         <handlebarsVersion>4.0.5</handlebarsVersion>
+        <json4sVersion>3.4.0</json4sVersion>
     </properties>
 
     <dependencies>
@@ -71,7 +72,12 @@
         <dependency>
             <groupId>org.json4s</groupId>
             <artifactId>json4s-jackson_2.11</artifactId>
-            <version>3.4.0</version>
+            <version>${json4sVersion}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.json4s</groupId>
+            <artifactId>json4s-ext_2.11</artifactId>
+            <version>${json4sVersion}</version>
         </dependency>
         <dependency>
             <groupId>com.softwaremill.quicklens</groupId>

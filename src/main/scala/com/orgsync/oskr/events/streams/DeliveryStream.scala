@@ -16,76 +16,45 @@
 
 package com.orgsync.oskr.events.streams
 
-import java.lang.Iterable
+import java.time.Duration
 
 import com.orgsync.oskr.events.messages.events.Acknowledgement
 import com.orgsync.oskr.events.messages.{Delivery, Event, Message}
-import com.orgsync.oskr.events.streams.delivery.{ScheduleChannelTrigger, TemplateCache}
-import org.apache.flink.api.common.functions.RichCoGroupFunction
-import org.apache.flink.api.common.state.{ValueState, ValueStateDescriptor}
+import com.orgsync.oskr.events.streams.delivery.{AssignChannel, ScheduleChannelTrigger}
 import org.apache.flink.api.scala._
 import org.apache.flink.configuration.Configuration
 import org.apache.flink.streaming.api.scala.DataStream
-import org.apache.flink.streaming.api.windowing.assigners.GlobalWindows
-import org.apache.flink.util.Collector
-
-import scala.collection.JavaConverters._
+import org.apache.flink.streaming.api.windowing.assigners.{GlobalWindows, TumblingProcessingTimeWindows}
+import org.apache.flink.streaming.api.windowing.time.Time
+import org.apache.flink.streaming.api.windowing.triggers.CountTrigger
+import org.apache.flink.streaming.api.windowing.windows.TimeWindow
 
 object DeliveryStream {
-
-  private class AssignChannel
-    extends RichCoGroupFunction[Message, Event, Delivery] {
-
-    var index: ValueState[Int] = _
-    var cache: TemplateCache = _
-
-    override def coGroup(
-      messages: Iterable[Message],
-      events  : Iterable[Event],
-      out     : Collector[Delivery]
-    ): Unit = messages.asScala.take(1).foreach {
-      message =>
-        val currentIndex = index.value
-        val channels = message.channels
-        val channelCount = channels.length
-        val acked = events.asScala.exists(_.action == Acknowledgement)
-
-        if (acked)
-          index.clear()
-        else if (currentIndex < channelCount) {
-          val delay = channels(currentIndex).delay
-          val triggers = channels.count(_.delay == delay)
-
-          0 until triggers foreach { i =>
-            val channelAddress = channels(currentIndex + i)
-            message.delivery(channelAddress, cache).foreach(out.collect)
-          }
-
-          index.update(currentIndex + triggers)
-          if (currentIndex == channelCount - 1) index.clear()
-        }
-    }
-
-    override def open(parameters: Configuration): Unit = {
-      val descriptor = new ValueStateDescriptor[Int](
-        "channelIndex", classOf[Int], 0
-      )
-
-      index = getRuntimeContext.getState(descriptor)
-      cache = new TemplateCache
-    }
-  }
-
   def getStream(
-    messages: DataStream[Message],
-    events  : DataStream[Event]
+    messages     : DataStream[Message],
+    events       : DataStream[Event],
+    configuration: Configuration
   ): DataStream[Delivery] = {
     val ackEvents = events.filter(_.action == Acknowledgement)
 
+    val maxDeliveryTime = Time.milliseconds(
+      Duration
+        .parse(configuration.getString("maxDeliveryTime", "PT1H"))
+        .toMillis
+    )
+
+    val ackedMessageIds = messages
+      .flatMap(m => m.channels.map(c => (m.id, c.deliveryId)))
+      .join(ackEvents)
+      .where(_._2).equalTo(_.deliveryId)
+      .window(TumblingProcessingTimeWindows.of(maxDeliveryTime))
+      .trigger(CountTrigger.of[TimeWindow](1))
+      .apply((t, event) => t._1)
+      .uid("acked message ids")
+
     messages
-      .coGroup(ackEvents)
-      .where(s => (s.id, s.recipient.id))
-      .equalTo(e => (e.messageId, e.recipientId))
+      .coGroup(ackedMessageIds)
+      .where(_.id).equalTo(id => id)
       .window(GlobalWindows.create)
       .trigger(new ScheduleChannelTrigger)
       .apply(new AssignChannel)

@@ -16,14 +16,15 @@
 
 package com.orgsync.oskr.events.streams
 
+import java.time.Duration
+
 import com.orgsync.oskr.events.Utilities
-import com.orgsync.oskr.events.messages.{BoundedPartWatermarkAssigner, PeriodicPartWatermarkAssigner, Part, PartParser}
+import com.orgsync.oskr.events.messages.{BoundedPartWatermarkAssigner, Part, PartParser, PeriodicPartWatermarkAssigner}
 import com.softwaremill.quicklens._
 import org.apache.flink.api.common.functions.RichFlatMapFunction
 import org.apache.flink.api.scala._
 import org.apache.flink.configuration.Configuration
 import org.apache.flink.streaming.api.scala.{SplitStream, StreamExecutionEnvironment}
-import org.apache.flink.streaming.api.windowing.time.Time
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer09
 import org.apache.flink.streaming.util.serialization.SimpleStringSchema
 import org.apache.flink.util.Collector
@@ -47,26 +48,28 @@ object PartStream {
   val Ungrouped = "ungrouped"
 
   def getStream(
-    env: StreamExecutionEnvironment,
+    env          : StreamExecutionEnvironment,
     configuration: Configuration
   ): SplitStream[Part] = {
     val partSource = new FlinkKafkaConsumer09[String](
       configuration.getString("kafkaPartTopic", "MessageParts"),
       new SimpleStringSchema,
-      Utilities.kafkaProperties(configuration)
+      Utilities.kafkaConsumerProperties(configuration)
     )
 
     val watermarkFormat = Utilities.watermarks(configuration)
     val watermarkAssigner = if (watermarkFormat == 'periodic)
       new PeriodicPartWatermarkAssigner(
-        configuration.getLong("maxPartLag", 5000)
+        Duration.parse(configuration.getString("maxPartLag", "PT5S")).toMillis
       )
     else
       new BoundedPartWatermarkAssigner(
-        Time.milliseconds(configuration.getLong("maxPartOutOfOrder", 5000))
+        Duration.parse(configuration.getString("maxPartOutOfOrder", "PT5S")).toMillis
       )
 
-    val dedupeCacheTime = configuration.getLong("dedupeCacheTime", 60)
+    val dedupeCacheTime = Duration.parse(
+      configuration.getString("dedupeCacheTime", "PT1H")
+    )
     val keyFunction = (s: Part) => (s.id, s.recipient.id)
 
     env

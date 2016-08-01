@@ -16,17 +16,17 @@
 
 package com.orgsync.oskr.events.streams.delivery
 
-import com.orgsync.oskr.events.messages.events.Acknowledgement
-import com.orgsync.oskr.events.messages.{Event, Message}
+import java.util.UUID
+
+import com.orgsync.oskr.events.messages.Message
 import org.apache.flink.api.common.state.ValueStateDescriptor
 import org.apache.flink.streaming.api.datastream.CoGroupedStreams.TaggedUnion
 import org.apache.flink.streaming.api.windowing.triggers.{Trigger, TriggerResult}
 import org.apache.flink.streaming.api.windowing.triggers.Trigger.TriggerContext
 import org.apache.flink.streaming.api.windowing.windows.Window
-import scala.math.abs
 
 class ScheduleChannelTrigger[W <: Window]
-  extends Trigger[TaggedUnion[Message, Event], W] {
+  extends Trigger[TaggedUnion[Message, UUID], W] {
 
   private val countDescriptor = new ValueStateDescriptor(
     "triggerCount", classOf[Int], 0
@@ -41,7 +41,7 @@ class ScheduleChannelTrigger[W <: Window]
   )
 
   override def onElement(
-    t: TaggedUnion[Message, Event],
+    t: TaggedUnion[Message, UUID],
     timestamp     : Long,
     window        : W,
     triggerContext: TriggerContext
@@ -51,19 +51,19 @@ class ScheduleChannelTrigger[W <: Window]
     val acked = triggerContext.getPartitionedState(ackedDescription)
     val now = triggerContext.getCurrentProcessingTime
 
-    val part = Option(t.getOne)
-    val event = Option(t.getTwo)
+    val maybeMessage = Option(t.getOne)
+    val maybeMessageId = Option(t.getTwo)
 
-    event.foreach(e => if (e.action == Acknowledgement) acked.update(true))
+    maybeMessageId.foreach(id => acked.update(true))
 
     if (!initialized.value)
-      part.foreach {
+      maybeMessage.foreach {
         s =>
           initialized.update(true)
           triggerCount.update(s.channels.length)
           s.channels.foreach {
             c =>
-              triggerContext.registerProcessingTimeTimer(now + abs(c.delay))
+              triggerContext.registerProcessingTimeTimer(now + c.delay.toMillis)
           }
       }
 

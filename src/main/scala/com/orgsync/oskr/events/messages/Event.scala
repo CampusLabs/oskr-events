@@ -17,32 +17,31 @@
 package com.orgsync.oskr.events.messages
 
 import java.time.Instant
+import java.util.UUID
 
-import com.orgsync.oskr.events.Utilities
 import com.orgsync.oskr.events.messages.events.{EventType, EventTypeSerializer}
-import com.orgsync.oskr.events.messages.parts.{ChannelType, ChannelTypeSerializer}
+import com.orgsync.oskr.events.messages.parts.ChannelTypeSerializer
 import org.apache.flink.streaming.api.functions.AssignerWithPeriodicWatermarks
 import org.apache.flink.streaming.api.functions.timestamps.BoundedOutOfOrdernessTimestampExtractor
 import org.apache.flink.streaming.api.watermark.Watermark
 import org.apache.flink.streaming.api.windowing.time.Time
 import org.json4s._
 import org.json4s.jackson.JsonMethods._
+import org.json4s.ext.UUIDSerializer
 
 import scala.util.{Failure, Success, Try}
 
 case class Event(
-  id         : String,
-  channel    : ChannelType,
-  action     : EventType,
-  occurredAt : Instant,
-  messageId  : String,
-  recipientId: String,
-  data       : JValue
+  id        : String,
+  deliveryId: UUID,
+  action    : EventType,
+  occurredAt: Instant,
+  data      : JValue
 )
 
 object EventParser {
   implicit val formats = DefaultFormats + InstantSerializer +
-    ChannelTypeSerializer + EventTypeSerializer
+    ChannelTypeSerializer + EventTypeSerializer + UUIDSerializer
 
   def parseEvent(json: String): Option[Event] = {
     val parsed = Try {
@@ -58,8 +57,8 @@ object EventParser {
   }
 }
 
-class BoundedEventWatermarkAssigner(time: Time)
-  extends BoundedOutOfOrdernessTimestampExtractor[Event](time) {
+class BoundedEventWatermarkAssigner(bound: Long)
+  extends BoundedOutOfOrdernessTimestampExtractor[Event](Time.milliseconds(bound)) {
   override def extractTimestamp(s: Event) = s.occurredAt.toEpochMilli
 }
 

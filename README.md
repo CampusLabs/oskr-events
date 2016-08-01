@@ -8,24 +8,25 @@ Use the following commandline arguments to configure the job:
 
 | Argument  | Default Value | Description |
 |-----------|---------------|-------------|
-| `checkpointInterval` | `5000` | interval between state snapshots (ms) |
+| `checkpointInterval` | `PT5S` | interval between state snapshots (ISO 8601 duration) |
 | `stateBackendPath` | `file:///tmp/state.db` | path to state database (file or HDFS) |
 | `kafkaBootstrap` | `kafka:9092` | Kafka broker bootstrap |
 | `kafkaGroup` | `oskr-events` | Kafka consumer group |
 | `kafkaPartTopic` | `MessageParts` | Kafka topic for incoming messages |
 | `kafkaEventTopic` | `Events` | Kafka topic for incoming events |
 | `watermarks` | `periodic` | event time watermarking strategy, either `periodic` or `bounded` |
-| `maxPartOutOfOrder` | `1000` | for `bounded` strategy, maximum amount of time messages can be out of order (ms) |
-| `maxEventOutOfOrder` | `1000` | for `bounded` strategy, maximum amount of time events can be out of order (ms) |
-| `maxPartLag` | `5000` | for `periodic` strategy, maximum lag before a message is considered late (ms) |
-| `maxEventLag` | `5000` | for `periodic` strategy, maximum lag before an event is considered late (ms) |
-| `webChannelDelay` | `0` | default delay before sending a message to web channel (ms) |
-| `pushChannelDelay` | `5000` | default delay before sending a message to push channel (ms) |
-| `smsChannelDelay` | `30000` | default delay before sending a message to SMS channel (ms) |
-| `emailChannelDelay` | `60000` | default delay before sending a message to email channel (ms) |
-| `dedupeCacheTime` | `60` | size of the message deduplication cache (minutes) |
-| `allowedLateness` | `60` | maximum allowed grouped message lateness in (minutes) |
-| `groupingGap` | `5` | default grouped message session gap (minutes) |
+| `maxPartOutOfOrder` | `PT5S` | for `bounded` strategy, maximum amount of time messages can be out of order (ISO 8601 duration) |
+| `maxEventOutOfOrder` | `PT5S` | for `bounded` strategy, maximum amount of time events can be out of order (ISO 8601 duration) |
+| `maxPartLag` | `PT5S` | for `periodic` strategy, maximum lag before a message is considered late (ISO 8601 duration) |
+| `maxEventLag` | `PT5S` | for `periodic` strategy, maximum lag before an event is considered late (ISO 8601 duration) |
+| `webChannelDelay` | `PT0S` | default delay before sending a message to web channel (ISO 8601 duration) |
+| `pushChannelDelay` | `PT5S` | default delay before sending a message to push channel (ISO 8601 duration) |
+| `smsChannelDelay` | `PT30S` | default delay before sending a message to SMS channel (ISO 8601 duration) |
+| `emailChannelDelay` | `PT1M` | default delay before sending a message to email channel (ISO 8601 duration) |
+| `dedupeCacheTime` | `PT1H` | size of the message deduplication cache (ISO 8601 duration) |
+| `allowedLateness` | `PT1H` | maximum allowed grouped message lateness in (ISO 8601 duration) |
+| `groupingGap` | `PT5M` | default grouped message session gap (ISO 8601 duration) |
+| `maxDeliveryTime` | `PT1H` | maximum time to wait for delivery to arrive (ISO 8601 duration) |
 
 ## License
 

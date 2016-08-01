@@ -16,6 +16,7 @@
 
 package com.orgsync.oskr.events.streams.grouping
 
+import java.time.Duration
 import java.util
 
 import scala.collection.JavaConversions._
@@ -31,7 +32,7 @@ import org.apache.flink.streaming.api.windowing.windows.TimeWindow
 
 import scala.math.abs
 
-class PartGroupingWindows(defaultGap: Long)
+class PartGroupingWindows(defaultGap: Duration)
   extends MergingWindowAssigner[Part, TimeWindow] {
 
   override def isEventTime: Boolean = true
@@ -41,7 +42,7 @@ class PartGroupingWindows(defaultGap: Long)
     timestamp: Long,
     windowAssignerContext: WindowAssignerContext
   ): util.Collection[TimeWindow] = {
-    val gap = abs(part.groupingGap.getOrElse(defaultGap))
+    val gap = abs(part.groupingGap.getOrElse(defaultGap).toMillis)
     List(new TimeWindow(timestamp, timestamp + gap))
   }
 

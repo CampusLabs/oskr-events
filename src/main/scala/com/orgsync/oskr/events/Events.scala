@@ -16,13 +16,16 @@
 
 package com.orgsync.oskr.events
 
-import com.orgsync.oskr.events.streams.{DeliveryStream, EventStream, GroupStream, PartStream}
+import java.time.Duration
+
+import com.orgsync.oskr.events.messages.parts.Web
+import com.orgsync.oskr.events.streams.delivery.SerializeDelivery
+import com.orgsync.oskr.events.streams._
 import org.apache.flink.api.scala._
 import org.apache.flink.api.java.utils.ParameterTool
 import org.apache.flink.contrib.streaming.state.RocksDBStateBackend
 import org.apache.flink.streaming.api.TimeCharacteristic
 import org.apache.flink.streaming.api.scala.StreamExecutionEnvironment
-import org.json4s.jackson.JsonMethods._
 
 object Events {
   def main(args: Array[String]): Unit = {
@@ -30,7 +33,11 @@ object Events {
     val configuration = parameters.getConfiguration
     val env = StreamExecutionEnvironment.getExecutionEnvironment
 
-    env.enableCheckpointing(parameters.getLong("checkpointInterval", 5000))
+    val checkpointInterval = Duration.parse(
+      parameters.get("checkpointInterval", "PT5S")
+    )
+
+    env.enableCheckpointing(checkpointInterval.toMillis)
     env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime)
 
     val statePath = parameters.get("stateBackendPath", "file:///tmp/oskr")
@@ -49,11 +56,14 @@ object Events {
 
     val messageStream = ungroupedStream.union(groupedStream)
 
-    val sendStream = DeliveryStream.getStream(messageStream, eventStream)
-    sendStream.map(m => (
-      m.address,
-      m.sourceIds.toList,
-      compact(render(m.content)))).print
+    val sendStream = DeliveryStream.getStream(messageStream, eventStream, configuration)
+      .split(d => List(d.channel))
+
+    sendStream
+      .select(Web.name)
+      .map(new SerializeDelivery)
+      .print
+//      .addSink(new KafkaSink(configuration).sink("WebDeliveries"))
 
     env.execute("oskr event processing")
   }

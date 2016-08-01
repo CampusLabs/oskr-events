@@ -16,44 +16,51 @@
 
 package com.orgsync.oskr.events.messages.parts
 
+import java.time.Duration
+import java.util.UUID
+
 import com.orgsync.oskr.events.Utilities
 import org.apache.flink.configuration.Configuration
 import org.json4s._
-
-import scala.math.abs
 
 sealed trait ChannelAddress {
   def channel: ChannelType
 
   def address: String
 
-  def delay: Long
+  def delay: Duration
+
+  def deliveryId: UUID
 }
 
 final case class WebChannelAddress(
-  address: String,
-  delay  : Long
+  address   : String,
+  delay     : Duration,
+  deliveryId: UUID
 ) extends ChannelAddress {
   val channel = Web
 }
 
 final case class PushChannelAddress(
-  address: String,
-  delay  : Long
+  address   : String,
+  delay     : Duration,
+  deliveryId: UUID
 ) extends ChannelAddress {
   val channel = Push
 }
 
 final case class SMSChannelAddress(
-  address: String,
-  delay  : Long
+  address   : String,
+  delay     : Duration,
+  deliveryId: UUID
 ) extends ChannelAddress {
   val channel = SMS
 }
 
 final case class EmailChannelAddress(
-  address: String,
-  delay  : Long
+  address   : String,
+  delay     : Duration,
+  deliveryId: UUID
 ) extends ChannelAddress {
   val channel = Email
 }
@@ -69,19 +76,19 @@ class ChannelAddressSerializer(parameters: Configuration)
       }
 
       val delay = rs match {
-        case List(JField("delay", JInt(d))) => abs(d.toLong)
+        case List(JField("delay", JString(d))) => Duration.parse(d)
         case _ => Utilities.channelDelay(parameters, channelType)
       }
 
       channelType match {
-        case Web => WebChannelAddress(a, delay)
-        case Push => PushChannelAddress(a, delay)
-        case SMS => SMSChannelAddress(a, delay)
-        case Email => EmailChannelAddress(a, delay)
+        case Web => WebChannelAddress(a, delay, UUID.randomUUID())
+        case Push => PushChannelAddress(a, delay, UUID.randomUUID())
+        case SMS => SMSChannelAddress(a, delay, UUID.randomUUID())
+        case Email => EmailChannelAddress(a, delay, UUID.randomUUID())
       }
   }, {
     case channelAddress: ChannelAddress =>
       new JObject(JField("type", JString(channelAddress.channel.name)) ::
         JField("address", JString(channelAddress.address)) ::
-        JField("delay", JInt(channelAddress.delay)) :: Nil)
+        JField("delay", JString(channelAddress.delay.toString)) :: Nil)
   }))

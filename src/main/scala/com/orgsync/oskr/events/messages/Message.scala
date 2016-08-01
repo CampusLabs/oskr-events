@@ -17,28 +17,36 @@
 package com.orgsync.oskr.events.messages
 
 import java.time.Instant
+import java.util.UUID
 
 import com.orgsync.oskr.events.messages.parts.{ChannelAddress, Recipient, TemplateSet}
 import com.orgsync.oskr.events.streams.delivery.TemplateCache
 import org.json4s.JsonAST.JArray
 
 final case class Message(
-  id       : String,
+  id       : UUID,
   senderId : String,
   recipient: Recipient,
   channels : Array[ChannelAddress],
   sentAt   : Instant,
   tags     : Option[Array[String]],
-  digestAt : Option[Boolean],
+  digestKey: Option[String],
+  digestAt : Option[Instant],
   templates: TemplateSet,
-  sourceIds: Array[String],
+  partIds  : Array[String],
   parts    : JArray
 ) extends Deliverable {
   override def delivery(address: ChannelAddress, cache: TemplateCache): Option[Delivery] = {
     val content = templates.renderBase(address, this, cache)
 
-    content.map(c =>
-      Delivery(id, senderId, recipient, address, sentAt, tags, sourceIds, c)
-    )
+    content.map(c => {
+      val deliveryId = address.deliveryId.toString
+      val deliveredAt = Instant.now()
+
+      Delivery(
+        deliveryId, address.channel.name, senderId, recipient.id, deliveredAt,
+        tags, partIds, c
+      )
+    })
   }
 }
