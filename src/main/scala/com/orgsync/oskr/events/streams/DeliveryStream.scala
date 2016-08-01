@@ -24,7 +24,7 @@ import com.orgsync.oskr.events.streams.delivery.{AssignChannel, ScheduleChannelT
 import org.apache.flink.api.scala._
 import org.apache.flink.configuration.Configuration
 import org.apache.flink.streaming.api.scala.DataStream
-import org.apache.flink.streaming.api.windowing.assigners.{GlobalWindows, TumblingProcessingTimeWindows}
+import org.apache.flink.streaming.api.windowing.assigners.{GlobalWindows, SlidingProcessingTimeWindows}
 import org.apache.flink.streaming.api.windowing.time.Time
 import org.apache.flink.streaming.api.windowing.triggers.CountTrigger
 import org.apache.flink.streaming.api.windowing.windows.TimeWindow
@@ -43,11 +43,13 @@ object DeliveryStream {
         .toMillis
     )
 
+    val deliverySlideTime = Time.milliseconds(maxDeliveryTime.toMilliseconds / 2)
+
     val ackedMessageIds = messages
       .flatMap(m => m.channels.map(c => (m.id, c.deliveryId)))
       .join(ackEvents)
       .where(_._2).equalTo(_.deliveryId)
-      .window(TumblingProcessingTimeWindows.of(maxDeliveryTime))
+      .window(SlidingProcessingTimeWindows.of(maxDeliveryTime, deliverySlideTime))
       .trigger(CountTrigger.of[TimeWindow](1))
       .apply((t, event) => t._1)
       .uid("acked message ids")
