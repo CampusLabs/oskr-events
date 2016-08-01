@@ -35,7 +35,7 @@ case class Event(
   deliveryId: UUID,
   action    : EventType,
   at        : Instant,
-  data      : JValue
+  data      : Option[JValue]
 )
 
 object EventParser {

@@ -52,7 +52,7 @@ object PartStream {
     configuration: Configuration
   ): SplitStream[Part] = {
     val partSource = new FlinkKafkaConsumer09[String](
-      configuration.getString("kafkaPartTopic", "MessageParts"),
+      configuration.getString("kafkaPartTopic", "Communications.MessageParts"),
       new SimpleStringSchema,
       Utilities.kafkaConsumerProperties(configuration)
     )

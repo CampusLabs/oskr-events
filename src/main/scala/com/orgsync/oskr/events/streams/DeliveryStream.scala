@@ -39,7 +39,7 @@ object DeliveryStream {
 
     val maxDeliveryTime = Time.milliseconds(
       Duration
-        .parse(configuration.getString("maxDeliveryTime", "PT1H"))
+        .parse(configuration.getString("maxDeliveryTime", "PT168H"))
         .toMillis
     )
 

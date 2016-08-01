@@ -12,8 +12,8 @@ Use the following commandline arguments to configure the job:
 | `stateBackendPath` | `file:///tmp/state.db` | path to state database (file or HDFS) |
 | `kafkaBootstrap` | `kafka:9092` | Kafka broker bootstrap |
 | `kafkaGroup` | `oskr-events` | Kafka consumer group |
-| `kafkaPartTopic` | `MessageParts` | Kafka topic for incoming messages |
-| `kafkaEventTopic` | `Events` | Kafka topic for incoming events |
+| `kafkaPartTopic` | `Communications.MessageParts` | Kafka topic for incoming messages |
+| `kafkaEventTopic` | `Communications.Events` | Kafka topic for incoming events |
 | `watermarks` | `periodic` | event time watermarking strategy, either `periodic` or `bounded` |
 | `maxPartOutOfOrder` | `PT5S` | for `bounded` strategy, maximum amount of time messages can be out of order (ISO 8601 duration) |
 | `maxEventOutOfOrder` | `PT5S` | for `bounded` strategy, maximum amount of time events can be out of order (ISO 8601 duration) |
@@ -26,7 +26,11 @@ Use the following commandline arguments to configure the job:
 | `dedupeCacheTime` | `PT1H` | size of the message deduplication cache (ISO 8601 duration) |
 | `allowedLateness` | `PT1H` | maximum allowed grouped message lateness in (ISO 8601 duration) |
 | `groupingGap` | `PT5M` | default grouped message session gap (ISO 8601 duration) |
-| `maxDeliveryTime` | `PT1H` | maximum time to wait for delivery to arrive (ISO 8601 duration) |
+| `maxDeliveryTime` | `PT168H` | maximum time to wait for delivery to arrive (ISO 8601 duration) |
+| `kafkaWebDeliveryTopic` | `Communications.Deliveries.Web` | Kafka topic for web delivery events |
+| `kafkaPushDeliveryTopic` | `Communications.Deliveries.Push` | Kafka topic for push delivery events |
+| `kafkaSmsDeliveryTopic` | `Communications.Deliveries.Sms` | Kafka topic for sms delivery events |
+| `kafkaEmailDeliveryTopic` | `Communications.Deliveries.Email` | Kafka topic for email delivery events |
 
 ## License
 
