@@ -1,0 +1,4 @@
+oskrevents:
+  build: .
+  volumes:
+    - ./bin/load.sh:/usr/local/bin/load.sh
