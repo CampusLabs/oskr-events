@@ -36,7 +36,7 @@ WORKDIR /opt/oskr-events
 ENV JOBMANAGER_CONNECT         jobmanager
 ENV PARALLELISM                8
 
-ENV JOB_NAME                   oskr event processing
+ENV JOB_NAME                   oskr_event_processing
 ENV CHECKPOINT_INTERVAL        PT5S
 ENV STATE_BACKEND_PATH         file:///tmp/state.db
 ENV KAFKA_BOOTSTRAP            kafka:9092

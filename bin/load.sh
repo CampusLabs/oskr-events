@@ -19,6 +19,7 @@ flink=$FLINK_HOME/bin/flink
 function check_error() {
   if [[ $@ == *"program finished with the following exception"* ]]; then
     echo "ERROR: external command failed"
+    echo "DEBUG: $@"
     exit 1
   fi
 }
@@ -44,6 +45,7 @@ function run() {
   args[dedupeCacheTime]=$DEDUPE_CACHE_TIME
   args[emailChannelDelay]=$EMAIL_CHANNEL_DELAY
   args[groupingGap]=$GROUPING_GAP
+  args[jobName]=$JOB_NAME
   args[kafkaBootstrap]=$KAFKA_BOOTSTRAP
   args[kafkaEmailDeliveryTopic]=$KAFKA_EMAIL_DELIVERY_TOPIC
   args[kafkaEventTopic]=$KAFKA_EVENT_TOPIC
