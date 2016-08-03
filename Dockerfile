@@ -17,11 +17,13 @@ FROM quay.io/orgsync/flink:latest
 WORKDIR /code
 COPY . /code/
 
+ENV JARFILE /opt/oskr-events/oskr-events.jar
+
 RUN apt-get update \
   && apt-get install -y maven \
   && mvn package -DskipTests \
   && mkdir -p /opt/oskr-events \
-  && cp /code/target/oskr-events.jar /opt/oskr-events/ \
+  && cp /code/target/oskr-events.jar $JARFILE \
   && apt-get remove --purge -y maven \
   && apt-get autoremove -y \
   && apt-get clean \
@@ -31,6 +33,10 @@ COPY ./bin/load.sh /usr/local/bin/
 
 WORKDIR /opt/oskr-events
 
+ENV JOBMANAGER_CONNECT         jobmanager
+ENV PARALLELISM                8
+
+ENV JOB_NAME                   oskr event processing
 ENV CHECKPOINT_INTERVAL        PT5S
 ENV STATE_BACKEND_PATH         file:///tmp/state.db
 ENV KAFKA_BOOTSTRAP            kafka:9092

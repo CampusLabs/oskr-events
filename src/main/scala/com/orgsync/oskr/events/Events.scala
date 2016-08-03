@@ -71,6 +71,7 @@ object Events {
         .addSink(new KafkaSink(configuration).sink(topicName))
     })
 
-    env.execute("oskr event processing")
+    val jobName = configuration.getString("jobName", "oskr event processing")
+    env.execute(jobName)
   }
 }

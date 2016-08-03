@@ -1,4 +1,9 @@
 oskrevents:
+  dns: 172.17.0.1
   build: .
   volumes:
-    - ./bin/load.sh:/usr/local/bin/load.sh
+    - .:/code
+  environment:
+    KAFKA_BOOTSTRAP: kafka.service.consul:9092
+    JOBMANAGER_CONNECT: flink-jobmanager.service.consul:6123
+    PARALLELISM: 1

@@ -13,6 +13,7 @@ Use the following commandline arguments to configure the job:
 | `dedupeCacheTime`         | `DEDUPE_CACHE_TIME`          | `PT1H`                            | size of the message deduplication cache (ISO 8601 duration)                                     |
 | `emailChannelDelay`       | `EMAIL_CHANNEL_DELAY`        | `PT1M`                            | default delay before sending a message to email channel (ISO 8601 duration)                     |
 | `groupingGap`             | `GROUPING_GAP`               | `PT5M`                            | default grouped message session gap (ISO 8601 duration)                                         |
+| `jobName`                 | `JOB_NAME`                   | `oskr event processing`           | Flink job name                                                                                  |
 | `kafkaBootstrap`          | `KAFKA_BOOTSTRAP`            | `kafka:9092`                      | Kafka broker bootstrap                                                                          |
 | `kafkaEmailDeliveryTopic` | `KAFKA_EMAIL_DELIVERY_TOPIC` | `Communications.Deliveries.Email` | Kafka topic for email delivery events                                                           |
 | `kafkaEventTopic`         | `KAFKA_EVENT_TOPIC`          | `Communications.Events`           | Kafka topic for incoming events                                                                 |
