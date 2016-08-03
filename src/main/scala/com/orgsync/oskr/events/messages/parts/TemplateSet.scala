@@ -30,8 +30,8 @@ final case class TemplateSet(
     address: ChannelAddress,
     message: Message,
     cache  : TemplateCache
-  ): Option[JValue] = renderChannelTemplate(
-    base, address, message.recipient, message.parts, cache
+  ): Option[JValue] = renderBaseTemplate(
+    base, address, message, message.parts, cache
   )
 
   def renderDigest(
@@ -39,27 +39,70 @@ final case class TemplateSet(
     messages: List[Message],
     cache   : TemplateCache
   ): Option[JValue] = {
-    val data = messages.flatMap(message => renderChannelTemplate(
-      digestBase, address, message.recipient, message.parts, cache
+    val data = messages.flatMap(message => renderBaseTemplate(
+      digestBase, address, message, message.parts, cache
     ))
 
-    messages.headOption.flatMap(message => renderChannelTemplate(
-      digestLayout, address, message.recipient, JArray(data), cache
+    val partIds = messages.flatMap(_.partIds)
+
+    messages.headOption.flatMap(message => renderLayoutTemplate(
+      digestLayout, address, message.recipient, JArray(data), partIds, cache
     ))
   }
 
-  private def renderChannelTemplate(
+  private def renderBaseTemplate(
     templates: ChannelTemplateMap,
     address  : ChannelAddress,
-    recipient: Recipient,
+    message  : Message,
     data     : JArray,
     cache    : TemplateCache
   ): Option[JValue] = {
     val template = templates.get(address.channel)
-    val value = JObject(
-      ("recipient", recipient.data) ::
-        ("data", data) ::
-        ("address", JString(address.address)) :: Nil)
+
+    val tags = message.tags match {
+      case Some(ts) => JArray(ts.toList.map(JString))
+      case None => JArray(Nil)
+    }
+
+    val partIDs = JArray(message.partIds.toList.map(id => JString(id.toString)))
+
+    val value = JObject(List(
+      ("recipient",   message.recipient.data),
+      ("data",        data),
+      ("address",     JString(address.address)),
+      ("senderId",    JString(message.senderId)),
+      ("messageId",   JString(message.id.toString)),
+      ("recipientId", JString(message.recipient.id)),
+      ("channel",     JString(address.channel.name)),
+      ("sentAt",      JString(message.sentAt.toString)),
+      ("tags",        tags),
+      ("partIds",     partIDs),
+      ("deliveryId",  JString(address.deliveryId.toString))
+    ))
+
+    template.map(t => renderTemplate(t, value, cache))
+  }
+
+  private def renderLayoutTemplate(
+    templates: ChannelTemplateMap,
+    address  : ChannelAddress,
+    recipient: Recipient,
+    data     : JArray,
+    partIds  : List[String],
+    cache    : TemplateCache
+
+  ): Option[JValue] = {
+    val template = templates.get(address.channel)
+
+    val value = JObject(List(
+      ("recipient",   recipient.data),
+      ("data",        data),
+      ("address",     JString(address.address)),
+      ("recipientId", JString(recipient.id)),
+      ("channel",     JString(address.channel.name)),
+      ("partIds",     JArray(partIds.map(JString))),
+      ("deliveryId",  JString(address.deliveryId.toString))
+    ))
 
     template.map(t => renderTemplate(t, value, cache))
   }
