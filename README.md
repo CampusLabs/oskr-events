@@ -4,7 +4,15 @@ A Flink-based service for more humane notifications. Work in progress.
 
 ## Configuration
 
-Use the following commandline arguments to configure the job:
+### Job Options
+
+| Environment Variable | Default Value | Description                                    |
+|----------------------|---------------|------------------------------------------------|
+| `JOBMANAGER_CONNECT` | `jobmanager`  | Flink jobmanager connect string                |
+| `PARALLELISM`        | `8`           | Job parallelism (must not change after deploy) |
+
+
+### Program Arguments
 
 | Program Argument          | Environment Variable         | Default Value                     | Description                                                                                     |
 |---------------------------|------------------------------|-----------------------------------|-------------------------------------------------------------------------------------------------|
