@@ -46,19 +46,27 @@ final case class Part(
   templates  : TemplateSet,
   data       : JValue
 ) {
-  def toMessage: Message = Message(
-    UUID.randomUUID, senderId, recipient, channels, sentAt, tags,
-    digestKey, digestAt, templates, List(id), JArray(List(data))
-  )
+  def toMessage: Message = {
+    val idSource = id + recipient.id
+    val messageId = UUID.nameUUIDFromBytes(idSource.getBytes)
+
+    Message(
+      messageId, senderId, recipient, channels, sentAt, tags,
+      digestKey, digestAt, templates, List(id), JArray(List(data))
+    )
+  }
 }
 
 object Parts {
   def toMessage(parts: Iterable[Part]): Option[Message] = {
     val partList = parts.toList
+    val idSource = partList.foldLeft("")((s, p) => s + p.id + p.recipient.id)
+    val messageId = UUID.nameUUIDFromBytes(idSource.getBytes)
 
     partList
       .headOption
       .map(_.toMessage)
+      .map(_.modify(_.id).setTo(messageId))
       .map(_.modify(_.parts).setTo(JArray(partList.map(_.data))))
       .map(_.modify(_.partIds).setTo(partList.map(_.id)))
   }
