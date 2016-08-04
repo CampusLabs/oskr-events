@@ -60,15 +60,20 @@ final case class Part(
 object Parts {
   def toMessage(parts: Iterable[Part]): Option[Message] = {
     val partList = parts.toList
-    val idSource = partList.foldLeft("")((s, p) => s + p.id + p.recipient.id)
-    val messageId = UUID.nameUUIDFromBytes(idSource.getBytes)
+    val buf = new StringBuilder
+    partList.foreach(p => {
+      buf ++= p.id
+      buf ++= p.recipient.id
+    })
+    val messageId = UUID.nameUUIDFromBytes(buf.toString.getBytes)
 
     partList
       .headOption
-      .map(_.toMessage)
-      .map(_.modify(_.id).setTo(messageId))
-      .map(_.modify(_.parts).setTo(JArray(partList.map(_.data))))
-      .map(_.modify(_.partIds).setTo(partList.map(_.id)))
+      .map(p => Message(
+        messageId, p.senderId, p.recipient, p.channels, p.sentAt, p.tags,
+        p.digestKey, p.digestAt, p.templates, partList.map(_.id),
+        JArray(partList.map(_.data))
+      ))
   }
 }
 
