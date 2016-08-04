@@ -60,11 +60,11 @@ final case class TemplateSet(
     val template = templates.get(address.channel)
 
     val tags = message.tags match {
-      case Some(ts) => JArray(ts.toList.map(JString))
+      case Some(ts) => JArray(ts.map(JString))
       case None => JArray(Nil)
     }
 
-    val partIDs = JArray(message.partIds.toList.map(id => JString(id.toString)))
+    val partIDs = JArray(message.partIds.map(id => JString(id.toString)))
 
     val value = JObject(List(
       ("recipient",   message.recipient.data),
@@ -77,7 +77,7 @@ final case class TemplateSet(
       ("sentAt",      JString(message.sentAt.toString)),
       ("tags",        tags),
       ("partIds",     partIDs),
-      ("deliveryId",  JString(address.deliveryId.toString))
+      ("deliveryId",  JString(address.deliveryId.get.toString))
     ))
 
     template.map(t => renderTemplate(t, value, cache))
@@ -101,7 +101,7 @@ final case class TemplateSet(
       ("recipientId", JString(recipient.id)),
       ("channel",     JString(address.channel.name)),
       ("partIds",     JArray(partIds.map(JString))),
-      ("deliveryId",  JString(address.deliveryId.toString))
+      ("deliveryId",  JString(address.deliveryId.get.toString))
     ))
 
     template.map(t => renderTemplate(t, value, cache))

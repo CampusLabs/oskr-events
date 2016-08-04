@@ -17,16 +17,18 @@
 package com.orgsync.oskr.events.messages
 
 import java.time.Instant
+import java.util.UUID
 
+import com.orgsync.oskr.events.messages.parts.ChannelType
 import org.json4s.JValue
 
 case class Delivery(
-  id         : String,
-  channel    : String,
+  id         : UUID,
+  channel    : ChannelType,
   senderId   : String,
   recipientId: String,
   at         : Instant,
-  tags       : Option[Array[String]],
-  partIds    : Array[String],
+  tags       : Option[List[String]],
+  partIds    : List[String],
   content    : JValue
 )

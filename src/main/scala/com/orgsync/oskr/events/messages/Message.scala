@@ -27,26 +27,25 @@ final case class Message(
   id       : UUID,
   senderId : String,
   recipient: Recipient,
-  channels : Array[ChannelAddress],
+  channels : List[ChannelAddress],
   sentAt   : Instant,
-  tags     : Option[Array[String]],
+  tags     : Option[List[String]],
   digestKey: Option[String],
   digestAt : Option[Instant],
   templates: TemplateSet,
-  partIds  : Array[String],
+  partIds  : List[String],
   parts    : JArray
 ) extends Deliverable {
   override def delivery(address: ChannelAddress, cache: TemplateCache): Option[Delivery] = {
     val content = templates.renderBase(address, this, cache)
 
-    content.map(c => {
-      val deliveryId = address.deliveryId.toString
+    content.flatMap(c => {
+      val deliveryId = address.deliveryId
       val deliveredAt = Instant.now()
 
-      Delivery(
-        deliveryId, address.channel.name, senderId, recipient.id, deliveredAt,
-        tags, partIds, c
-      )
+      deliveryId.map(id => Delivery(
+        id, address.channel, senderId, recipient.id, deliveredAt, tags, partIds, c
+      ))
     })
   }
 }

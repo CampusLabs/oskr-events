@@ -57,7 +57,7 @@ object Events {
     val messageStream = ungroupedStream.union(groupedStream)
 
     val sendStream = DeliveryStream.getStream(messageStream, eventStream, configuration)
-      .split(d => List(d.channel))
+      .split(d => List(d.channel.name))
 
     List(Web.name, SMS.name, Push.name, Email.name).map(channelName => {
       val capChannelName = channelName.capitalize

@@ -17,8 +17,10 @@
 package com.orgsync.oskr.events.streams
 
 import java.time.Duration
+import java.util.UUID
 
 import com.orgsync.oskr.events.Utilities
+import com.orgsync.oskr.events.messages.parts.ChannelAddress
 import com.orgsync.oskr.events.messages.{BoundedPartWatermarkAssigner, Part, PartParser, PeriodicPartWatermarkAssigner}
 import com.softwaremill.quicklens._
 import org.apache.flink.api.common.functions.RichFlatMapFunction
@@ -67,6 +69,15 @@ object PartStream {
         Duration.parse(configuration.getString("maxPartOutOfOrder", "PT5S")).toMillis
       )
 
+    val assignDeliveryIds = (part: Part) => {
+      part.modify(_.channels.each).using((c: ChannelAddress) => {
+        val source = part.id + part.recipient.id + c.channel.name
+        val id = UUID.nameUUIDFromBytes(source.getBytes)
+
+        c.modify(_.deliveryId).using(Function.const(Option(id)))
+      })
+    }
+
     val dedupeCacheTime = Duration.parse(
       configuration.getString("dedupeCacheTime", "PT1H")
     )
@@ -76,6 +87,7 @@ object PartStream {
       .addSource(partSource)
       .uid("part source")
       .flatMap(new ParsePart(configuration))
+      .map(assignDeliveryIds)
       .assignTimestampsAndWatermarks(watermarkAssigner)
       .keyBy(keyFunction)
       .filter(new DedupeFilterFunction[Part, (String, String)](

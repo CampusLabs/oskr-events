@@ -30,13 +30,13 @@ sealed trait ChannelAddress {
 
   def delay: Duration
 
-  def deliveryId: UUID
+  def deliveryId: Option[UUID]
 }
 
 final case class WebChannelAddress(
   address   : String,
   delay     : Duration,
-  deliveryId: UUID
+  deliveryId: Option[UUID]
 ) extends ChannelAddress {
   val channel = Web
 }
@@ -44,7 +44,7 @@ final case class WebChannelAddress(
 final case class PushChannelAddress(
   address   : String,
   delay     : Duration,
-  deliveryId: UUID
+  deliveryId: Option[UUID]
 ) extends ChannelAddress {
   val channel = Push
 }
@@ -52,7 +52,7 @@ final case class PushChannelAddress(
 final case class SMSChannelAddress(
   address   : String,
   delay     : Duration,
-  deliveryId: UUID
+  deliveryId: Option[UUID]
 ) extends ChannelAddress {
   val channel = SMS
 }
@@ -60,7 +60,7 @@ final case class SMSChannelAddress(
 final case class EmailChannelAddress(
   address   : String,
   delay     : Duration,
-  deliveryId: UUID
+  deliveryId: Option[UUID]
 ) extends ChannelAddress {
   val channel = Email
 }
@@ -81,10 +81,10 @@ class ChannelAddressSerializer(parameters: Configuration)
       }
 
       channelType match {
-        case Web => WebChannelAddress(a, delay, UUID.randomUUID())
-        case Push => PushChannelAddress(a, delay, UUID.randomUUID())
-        case SMS => SMSChannelAddress(a, delay, UUID.randomUUID())
-        case Email => EmailChannelAddress(a, delay, UUID.randomUUID())
+        case Web => WebChannelAddress(a, delay, None)
+        case Push => PushChannelAddress(a, delay, None)
+        case SMS => SMSChannelAddress(a, delay, None)
+        case Email => EmailChannelAddress(a, delay, None)
       }
   }, {
     case channelAddress: ChannelAddress =>

@@ -22,6 +22,7 @@ import org.apache.flink.api.common.functions.RichMapFunction
 import org.apache.flink.configuration.Configuration
 import org.json4s.DefaultFormats
 import org.json4s._
+import org.json4s.ext.UUIDSerializer
 import org.json4s.jackson.Serialization.write
 
 class SerializeDelivery extends RichMapFunction[Delivery, String] {
@@ -32,6 +33,6 @@ class SerializeDelivery extends RichMapFunction[Delivery, String] {
   override def open(parameters: Configuration): Unit = {
     formats = DefaultFormats + InstantSerializer +
       ChannelTypeSerializer + ChannelTypeKeySerializer +
-      new ChannelAddressSerializer(parameters)
+      new ChannelAddressSerializer(parameters) + UUIDSerializer
   }
 }

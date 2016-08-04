@@ -36,11 +36,11 @@ final case class Part(
   id         : String,
   senderId   : String,
   recipient  : Recipient,
-  channels   : Array[ChannelAddress],
+  channels   : List[ChannelAddress],
   sentAt     : Instant,
   groupingKey: Option[String],
   groupingGap: Option[Duration],
-  tags       : Option[Array[String]],
+  tags       : Option[List[String]],
   digestKey  : Option[String],
   digestAt   : Option[Instant],
   templates  : TemplateSet,
@@ -48,7 +48,7 @@ final case class Part(
 ) {
   def toMessage: Message = Message(
     UUID.randomUUID, senderId, recipient, channels, sentAt, tags,
-    digestKey, digestAt, templates, Array(id), JArray(List(data))
+    digestKey, digestAt, templates, List(id), JArray(List(data))
   )
 }
 
@@ -60,7 +60,7 @@ object Parts {
       .headOption
       .map(_.toMessage)
       .map(_.modify(_.parts).setTo(JArray(partList.map(_.data))))
-      .map(_.modify(_.partIds).setTo(partList.map(_.id).toArray))
+      .map(_.modify(_.partIds).setTo(partList.map(_.id)))
   }
 }
 

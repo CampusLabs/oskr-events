@@ -48,7 +48,7 @@ object DeliveryStream {
     val ackedMessageIds = messages
       .flatMap(m => m.channels.map(c => (m.id, c.deliveryId)))
       .join(ackEvents)
-      .where(_._2).equalTo(_.deliveryId)
+      .where(_._2).equalTo(e => Option(e.deliveryId))
       .window(SlidingProcessingTimeWindows.of(maxDeliveryTime, deliverySlideTime))
       .trigger(CountTrigger.of[TimeWindow](1))
       .apply((t, event) => t._1)
