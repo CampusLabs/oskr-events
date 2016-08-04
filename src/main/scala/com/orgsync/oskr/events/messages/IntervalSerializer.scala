@@ -16,21 +16,14 @@
 
 package com.orgsync.oskr.events.messages
 
-import java.time.Instant
-import java.util.UUID
-
-import com.orgsync.oskr.events.messages.parts.ChannelType
-import org.json4s.JValue
+import org.json4s.CustomSerializer
+import org.json4s.JsonAST.JString
 import org.threeten.extra.Interval
 
-case class Delivery(
-  id          : UUID,
-  channel     : ChannelType,
-  senderIds   : Set[String],
-  sentInterval: Interval,
-  recipientId : String,
-  scheduledAt : Instant,
-  tags        : Set[String],
-  partIds     : List[String],
-  content     : JValue
+object IntervalSerializer extends CustomSerializer[Interval](f =>
+  ( {
+    case JString(s) => Interval.parse(s)
+  }, {
+    case i: Interval => JString(i.toString)
+  })
 )

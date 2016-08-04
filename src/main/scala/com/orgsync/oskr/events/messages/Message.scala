@@ -22,19 +22,20 @@ import java.util.UUID
 import com.orgsync.oskr.events.messages.parts.{ChannelAddress, Recipient, TemplateSet}
 import com.orgsync.oskr.events.streams.delivery.TemplateCache
 import org.json4s.JsonAST.JArray
+import org.threeten.extra.Interval
 
 final case class Message(
-  id       : UUID,
-  senderId : String,
-  recipient: Recipient,
-  channels : List[ChannelAddress],
-  sentAt   : Instant,
-  tags     : Option[List[String]],
-  digestKey: Option[String],
-  digestAt : Option[Instant],
-  templates: TemplateSet,
-  partIds  : List[String],
-  partData : JArray
+  id          : UUID,
+  senderIds   : Set[String],
+  recipient   : Recipient,
+  channels    : List[ChannelAddress],
+  sentInterval: Interval,
+  tags        : Set[String],
+  digestKey   : Option[String],
+  digestAt    : Option[Instant],
+  templates   : TemplateSet,
+  partIds     : List[String],
+  partData    : JArray
 ) extends Deliverable {
   override def delivery(address: ChannelAddress, cache: TemplateCache): Option[Delivery] = {
     val content = templates.renderBase(address, this, cache)
@@ -44,7 +45,8 @@ final case class Message(
       val deliveredAt = Instant.now()
 
       deliveryId.map(id => Delivery(
-        id, address.channel, senderId, recipient.id, deliveredAt, tags, partIds, c
+        id, address.channel, senderIds, sentInterval, recipient.id, deliveredAt, tags,
+        partIds, c
       ))
     })
   }

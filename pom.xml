@@ -104,6 +104,11 @@
             <artifactId>handlebars-jackson2</artifactId>
             <version>${handlebarsVersion}</version>
         </dependency>
+        <dependency>
+            <groupId>org.threeten</groupId>
+            <artifactId>threeten-extra</artifactId>
+            <version>1.0</version>
+        </dependency>
     </dependencies>
 
     <build>

@@ -16,7 +16,7 @@
 
 package com.orgsync.oskr.events.streams.delivery
 
-import com.orgsync.oskr.events.messages.{Delivery, InstantSerializer}
+import com.orgsync.oskr.events.messages.{Delivery, InstantSerializer, IntervalSerializer}
 import com.orgsync.oskr.events.messages.parts.{ChannelAddressSerializer, ChannelTypeKeySerializer, ChannelTypeSerializer}
 import org.apache.flink.api.common.functions.RichMapFunction
 import org.apache.flink.configuration.Configuration
@@ -33,6 +33,7 @@ class SerializeDelivery extends RichMapFunction[Delivery, String] {
   override def open(parameters: Configuration): Unit = {
     formats = DefaultFormats + InstantSerializer +
       ChannelTypeSerializer + ChannelTypeKeySerializer +
-      new ChannelAddressSerializer(parameters) + UUIDSerializer
+      new ChannelAddressSerializer(parameters) + UUIDSerializer +
+      IntervalSerializer
   }
 }

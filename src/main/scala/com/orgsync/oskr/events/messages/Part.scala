@@ -28,6 +28,7 @@ import org.apache.flink.streaming.api.windowing.time.Time
 import org.json4s.JsonAST.JArray
 import org.json4s._
 import org.json4s.jackson.JsonMethods._
+import org.threeten.extra.Interval
 
 import scala.util.{Failure, Success, Try}
 
@@ -39,7 +40,7 @@ final case class Part(
   sentAt     : Instant,
   groupingKey: Option[String],
   groupingGap: Option[Duration],
-  tags       : Option[List[String]],
+  tags       : Option[Set[String]],
   digestKey  : Option[String],
   digestAt   : Option[Instant],
   templates  : TemplateSet,
@@ -49,8 +50,15 @@ final case class Part(
     val idSource = id + recipient.id
     val messageId = UUID.nameUUIDFromBytes(idSource.getBytes)
 
+    val sent = Interval.of(sentAt, sentAt)
+
+    val messageTags = tags match {
+      case Some(ts) => ts
+      case None => Set[String]()
+    }
+
     Message(
-      messageId, senderId, recipient, channels, sentAt, tags,
+      messageId, Set(senderId), recipient, channels, sent, messageTags,
       digestKey, digestAt, templates, List(id), JArray(List(data))
     )
   }
@@ -59,17 +67,24 @@ final case class Part(
 object Parts {
   def toMessage(parts: Iterable[Part]): Option[Message] = {
     val partList = parts.toList
+
     val buf = new StringBuilder
     partList.foreach(p => {
       buf ++= p.id
       buf ++= p.recipient.id
     })
+
     val messageId = UUID.nameUUIDFromBytes(buf.toString.getBytes)
+
+    val senderIds = partList.map(_.senderId).toSet
+    val sendTimes = partList.map(_.sentAt).sorted
+    val sendInterval = Interval.of(sendTimes.head, sendTimes.last)
+    val tags = partList.flatMap(_.tags.getOrElse(Set[String]())).toSet
 
     partList
       .headOption
       .map(p => Message(
-        messageId, p.senderId, p.recipient, p.channels, p.sentAt, p.tags,
+        messageId, senderIds, p.recipient, p.channels, sendInterval, tags,
         p.digestKey, p.digestAt, p.templates, partList.map(_.id),
         JArray(partList.map(_.data))
       ))

@@ -58,26 +58,21 @@ final case class TemplateSet(
     cache    : TemplateCache
   ): Option[JValue] = {
     val template = templates.get(address.channel)
-
-    val tags = message.tags match {
-      case Some(ts) => JArray(ts.map(JString))
-      case None => JArray(Nil)
-    }
-
     val partIDs = JArray(message.partIds.map(id => JString(id.toString)))
+    val tags = JArray(message.tags.map(JString).toList)
 
     val value = JObject(List(
-      ("recipient",   message.recipient.data),
-      ("data",        data),
-      ("address",     JString(address.address)),
-      ("senderId",    JString(message.senderId)),
-      ("messageId",   JString(message.id.toString)),
-      ("recipientId", JString(message.recipient.id)),
-      ("channel",     JString(address.channel.name)),
-      ("sentAt",      JString(message.sentAt.toString)),
-      ("tags",        tags),
-      ("partIds",     partIDs),
-      ("deliveryId",  JString(address.deliveryId.get.toString))
+      ("recipient",    message.recipient.data),
+      ("data",         data),
+      ("address",      JString(address.address)),
+      ("senderIds",    JArray(message.senderIds.map(JString).toList)),
+      ("messageId",    JString(message.id.toString)),
+      ("recipientId",  JString(message.recipient.id)),
+      ("channel",      JString(address.channel.name)),
+      ("sentInterval", JString(message.sentInterval.toString)),
+      ("tags",         tags),
+      ("partIds",      partIDs),
+      ("deliveryId",   JString(address.deliveryId.get.toString))
     ))
 
     template.map(t => renderTemplate(t, value, cache))
