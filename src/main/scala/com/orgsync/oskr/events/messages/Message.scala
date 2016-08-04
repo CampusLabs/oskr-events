@@ -34,7 +34,7 @@ final case class Message(
   digestAt : Option[Instant],
   templates: TemplateSet,
   partIds  : List[String],
-  parts    : JArray
+  partData : JArray
 ) extends Deliverable {
   override def delivery(address: ChannelAddress, cache: TemplateCache): Option[Delivery] = {
     val content = templates.renderBase(address, this, cache)

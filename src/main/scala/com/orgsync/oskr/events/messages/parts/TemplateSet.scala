@@ -31,7 +31,7 @@ final case class TemplateSet(
     message: Message,
     cache  : TemplateCache
   ): Option[JValue] = renderBaseTemplate(
-    base, address, message, message.parts, cache
+    base, address, message, message.partData, cache
   )
 
   def renderDigest(
@@ -40,7 +40,7 @@ final case class TemplateSet(
     cache   : TemplateCache
   ): Option[JValue] = {
     val data = messages.flatMap(message => renderBaseTemplate(
-      digestBase, address, message, message.parts, cache
+      digestBase, address, message, message.partData, cache
     ))
 
     val partIds = messages.flatMap(_.partIds)

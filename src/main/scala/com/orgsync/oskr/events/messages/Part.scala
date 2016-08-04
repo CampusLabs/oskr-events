@@ -20,7 +20,6 @@ import java.time.{Duration, Instant}
 import java.util.UUID
 
 import com.orgsync.oskr.events.messages.parts._
-import com.softwaremill.quicklens._
 import org.apache.flink.configuration.Configuration
 import org.apache.flink.streaming.api.functions.AssignerWithPeriodicWatermarks
 import org.apache.flink.streaming.api.functions.timestamps.BoundedOutOfOrdernessTimestampExtractor
