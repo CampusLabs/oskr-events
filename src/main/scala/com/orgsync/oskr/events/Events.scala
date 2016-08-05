@@ -59,14 +59,14 @@ object Events {
     val sendStream = DeliveryStream.getStream(messageStream, eventStream, configuration)
       .split(d => List(d.channel.name))
 
-    List(Web.name, SMS.name, Push.name, Email.name).map(channelName => {
-      val capChannelName = channelName.capitalize
-      val propertyName = "kafka" + capChannelName + "DeliveryTopic"
-      val defaultValue = "Communications.Deliveries." + capChannelName
+    List(Web, SMS, Push, Email).map(_.name).map(name => {
+      val capName = name.capitalize
+      val propertyName = "kafka" + capName + "DeliveryTopic"
+      val defaultValue = "Communications.Deliveries." + capName
       val topicName = configuration.getString(propertyName, defaultValue)
 
       sendStream
-        .select(channelName)
+        .select(name)
         .map(new SerializeDelivery)
         .addSink(new KafkaSink(configuration).sink(topicName))
     })
