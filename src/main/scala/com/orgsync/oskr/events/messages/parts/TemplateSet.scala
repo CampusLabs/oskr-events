@@ -21,6 +21,8 @@ import com.orgsync.oskr.events.messages.Message
 import com.orgsync.oskr.events.streams.delivery.TemplateCache
 import org.json4s.JsonAST._
 
+import scala.util.Try
+
 final case class TemplateSet(
   base        : ChannelTemplateMap,
   digestBase  : ChannelTemplateMap,
@@ -75,7 +77,7 @@ final case class TemplateSet(
       ("deliveryId",   JString(address.deliveryId.get.toString))
     ))
 
-    template.map(t => renderTemplate(t, value, cache))
+    template.flatMap(t => Try(renderTemplate(t, value, cache)).toOption)
   }
 
   private def renderLayoutTemplate(
@@ -99,7 +101,7 @@ final case class TemplateSet(
       ("deliveryId",  JString(address.deliveryId.get.toString))
     ))
 
-    template.map(t => renderTemplate(t, value, cache))
+    template.flatMap(t => Try(renderTemplate(t, value, cache)).toOption)
   }
 
   private def renderTemplate(
