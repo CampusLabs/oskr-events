@@ -14,15 +14,20 @@
  * limitations under the License.
  */
 
-package com.orgsync.oskr.events.messages
+package com.orgsync.oskr.events.watermarks
 
-import java.time.Instant
+import com.orgsync.oskr.events.messages.Part
+import org.apache.flink.streaming.api.functions.AssignerWithPeriodicWatermarks
+import org.apache.flink.streaming.api.watermark.Watermark
 
-import org.json4s._
+class PeriodicPartWatermarkAssigner(maxTimeLag: Long)
+  extends AssignerWithPeriodicWatermarks[Part] {
 
-object InstantSerializer extends CustomSerializer[Instant](f =>
-  ( {
-    case JString(s) => Instant.parse(s)
-  }, {
-    case i: Instant => JString(i.toString)
-  }))
+  override def extractTimestamp(s: Part, previousTimestamp: Long) = {
+    s.sentAt.toEpochMilli
+  }
+
+  override def getCurrentWatermark: Watermark = {
+    new Watermark(System.currentTimeMillis() - maxTimeLag)
+  }
+}

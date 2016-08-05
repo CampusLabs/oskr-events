@@ -16,8 +16,6 @@
 
 package com.orgsync.oskr.events.messages.parts
 
-import org.json4s._
-
 sealed trait ChannelType {
   def name        : String
   def defaultDelay: String
@@ -43,20 +41,3 @@ case object Email extends ChannelType {
   val defaultDelay = "PT1M"
 }
 
-object ChannelTypeSerializer extends CustomSerializer[ChannelType](f => ( {
-  case JString(Web.name) => Web
-  case JString(SMS.name) => SMS
-  case JString(Push.name) => Push
-  case JString(Email.name) => Email
-}, {
-  case channelType: ChannelType => JString(channelType.name)
-}))
-
-object ChannelTypeKeySerializer extends CustomKeySerializer[ChannelType](f => ( {
-  case s: String => {
-    implicit val formats = DefaultFormats + ChannelTypeSerializer
-    JString(s).extract[ChannelType]
-  }
-}, {
-  case x: ChannelType => x.name
-}))

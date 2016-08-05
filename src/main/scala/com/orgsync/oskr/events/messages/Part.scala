@@ -20,17 +20,9 @@ import java.time.{Duration, Instant}
 import java.util.UUID
 
 import com.orgsync.oskr.events.messages.parts._
-import org.apache.flink.configuration.Configuration
-import org.apache.flink.streaming.api.functions.AssignerWithPeriodicWatermarks
-import org.apache.flink.streaming.api.functions.timestamps.BoundedOutOfOrdernessTimestampExtractor
-import org.apache.flink.streaming.api.watermark.Watermark
-import org.apache.flink.streaming.api.windowing.time.Time
 import org.json4s.JsonAST.JArray
 import org.json4s._
-import org.json4s.jackson.JsonMethods._
 import org.threeten.extra.Interval
-
-import scala.util.{Failure, Success, Try}
 
 final case class Part(
   id         : String,
@@ -91,40 +83,3 @@ object Parts {
   }
 }
 
-class PartParser(parameters: Configuration) {
-  val channelAddressSerializer = new ChannelAddressSerializer(parameters)
-
-  implicit val formats = DefaultFormats + InstantSerializer +
-    DurationSerializer + ChannelTypeSerializer + channelAddressSerializer +
-    ChannelTypeKeySerializer
-
-  def parsePart(json: String): Option[Part] = {
-    val parsed = Try {
-      parse(json).extract[Part]
-    }
-
-    parsed match {
-      case Success(s) => Option(s)
-      case Failure(e) =>
-        println(e.getMessage)
-        None
-    }
-  }
-}
-
-class BoundedPartWatermarkAssigner(bound: Long)
-  extends BoundedOutOfOrdernessTimestampExtractor[Part](Time.days(bound)) {
-  override def extractTimestamp(s: Part) = s.sentAt.toEpochMilli
-}
-
-class PeriodicPartWatermarkAssigner(maxTimeLag: Long)
-  extends AssignerWithPeriodicWatermarks[Part] {
-
-  override def extractTimestamp(s: Part, previousTimestamp: Long) = {
-    s.sentAt.toEpochMilli
-  }
-
-  override def getCurrentWatermark: Watermark = {
-    new Watermark(System.currentTimeMillis() - maxTimeLag)
-  }
-}

@@ -14,18 +14,15 @@
  * limitations under the License.
  */
 
-package com.orgsync.oskr.events.messages
+package com.orgsync.oskr.events.serializers
 
 import java.time.Instant
-import java.util.UUID
 
-import com.orgsync.oskr.events.messages.events.EventType
-import org.json4s.JsonAST.JValue
+import org.json4s._
 
-case class Event(
-  deliveryId: UUID,
-  action    : EventType,
-  at        : Instant,
-  data      : Option[JValue]
-)
-
+object InstantSerializer extends CustomSerializer[Instant](f =>
+  ( {
+    case JString(s) => Instant.parse(s)
+  }, {
+    case i: Instant => JString(i.toString)
+  }))

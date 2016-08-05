@@ -14,26 +14,24 @@
  * limitations under the License.
  */
 
-package com.orgsync.oskr.events.streams.delivery
+package com.orgsync.oskr.events.streams.parts
 
-import com.orgsync.oskr.events.messages.Delivery
-import com.orgsync.oskr.events.serializers._
-import org.apache.flink.api.common.functions.RichMapFunction
+import com.orgsync.oskr.events.messages.Part
+import com.orgsync.oskr.events.parsers.PartParser
+import org.apache.flink.api.common.functions.RichFlatMapFunction
 import org.apache.flink.configuration.Configuration
-import org.json4s.DefaultFormats
-import org.json4s._
-import org.json4s.ext.UUIDSerializer
-import org.json4s.jackson.Serialization.write
+import org.apache.flink.util.Collector
 
-class SerializeDelivery extends RichMapFunction[Delivery, String] {
-  implicit var formats: Formats = _
+class ParsePart(parameters: Configuration)
+  extends RichFlatMapFunction[String, Part] {
 
-  override def map(in: Delivery): String = write(in)
+  var parser: PartParser = _
+
+  override def flatMap(json: String, out: Collector[Part]): Unit = {
+    parser.parsePart(json).foreach(out.collect)
+  }
 
   override def open(parameters: Configuration): Unit = {
-    formats = DefaultFormats + InstantSerializer +
-      ChannelTypeSerializer + ChannelTypeKeySerializer +
-      new ChannelAddressSerializer(parameters) + UUIDSerializer +
-      IntervalSerializer
+    parser = new PartParser(parameters)
   }
 }

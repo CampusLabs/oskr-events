@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-package com.orgsync.oskr.events.messages
+package com.orgsync.oskr.events.serializers
 
-import org.json4s.CustomSerializer
-import org.json4s.JsonAST.JString
-import org.threeten.extra.Interval
+import java.time.Duration
 
-object IntervalSerializer extends CustomSerializer[Interval](f =>
+import org.json4s._
+
+object DurationSerializer extends CustomSerializer[Duration](f =>
   ( {
-    case JString(s) => Interval.parse(s)
+    case JString(s) => Duration.parse(s)
   }, {
-    case i: Interval => JString(i.toString)
-  })
-)
+    case d: Duration => JString(d.toString)
+  }))

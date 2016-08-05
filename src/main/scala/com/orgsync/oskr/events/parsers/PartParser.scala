@@ -14,26 +14,33 @@
  * limitations under the License.
  */
 
-package com.orgsync.oskr.events.streams.delivery
+package com.orgsync.oskr.events.parsers
 
-import com.orgsync.oskr.events.messages.Delivery
+import com.orgsync.oskr.events.messages.Part
 import com.orgsync.oskr.events.serializers._
-import org.apache.flink.api.common.functions.RichMapFunction
 import org.apache.flink.configuration.Configuration
 import org.json4s.DefaultFormats
-import org.json4s._
-import org.json4s.ext.UUIDSerializer
-import org.json4s.jackson.Serialization.write
+import org.json4s.jackson.JsonMethods._
 
-class SerializeDelivery extends RichMapFunction[Delivery, String] {
-  implicit var formats: Formats = _
+import scala.util.{Failure, Success, Try}
 
-  override def map(in: Delivery): String = write(in)
+class PartParser(parameters: Configuration) {
+  val channelAddressSerializer = new ChannelAddressSerializer(parameters)
 
-  override def open(parameters: Configuration): Unit = {
-    formats = DefaultFormats + InstantSerializer +
-      ChannelTypeSerializer + ChannelTypeKeySerializer +
-      new ChannelAddressSerializer(parameters) + UUIDSerializer +
-      IntervalSerializer
+  implicit val formats = DefaultFormats + InstantSerializer +
+    DurationSerializer + ChannelTypeSerializer + channelAddressSerializer +
+    ChannelTypeKeySerializer
+
+  def parsePart(json: String): Option[Part] = {
+    val parsed = Try {
+      parse(json).extract[Part]
+    }
+
+    parsed match {
+      case Success(s) => Option(s)
+      case Failure(e) =>
+        println(e.getMessage)
+        None
+    }
   }
 }

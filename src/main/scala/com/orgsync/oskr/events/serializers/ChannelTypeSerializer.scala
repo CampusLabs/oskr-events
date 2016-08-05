@@ -14,18 +14,17 @@
  * limitations under the License.
  */
 
-package com.orgsync.oskr.events.messages
+package com.orgsync.oskr.events.serializers
 
-import java.time.Instant
-import java.util.UUID
+import com.orgsync.oskr.events.messages.parts._
+import org.json4s.CustomSerializer
+import org.json4s.JsonAST.JString
 
-import com.orgsync.oskr.events.messages.events.EventType
-import org.json4s.JsonAST.JValue
-
-case class Event(
-  deliveryId: UUID,
-  action    : EventType,
-  at        : Instant,
-  data      : Option[JValue]
-)
-
+object ChannelTypeSerializer extends CustomSerializer[ChannelType](f => ( {
+  case JString(Web.name) => Web
+  case JString(SMS.name) => SMS
+  case JString(Push.name) => Push
+  case JString(Email.name) => Email
+}, {
+  case channelType: ChannelType => JString(channelType.name)
+}))

@@ -14,18 +14,13 @@
  * limitations under the License.
  */
 
-package com.orgsync.oskr.events.messages
+package com.orgsync.oskr.events.watermarks
 
-import java.time.Instant
-import java.util.UUID
+import com.orgsync.oskr.events.messages.Part
+import org.apache.flink.streaming.api.functions.timestamps.BoundedOutOfOrdernessTimestampExtractor
+import org.apache.flink.streaming.api.windowing.time.Time
 
-import com.orgsync.oskr.events.messages.events.EventType
-import org.json4s.JsonAST.JValue
-
-case class Event(
-  deliveryId: UUID,
-  action    : EventType,
-  at        : Instant,
-  data      : Option[JValue]
-)
-
+class BoundedPartWatermarkAssigner(bound: Long)
+  extends BoundedOutOfOrdernessTimestampExtractor[Part](Time.days(bound)) {
+  override def extractTimestamp(s: Part) = s.sentAt.toEpochMilli
+}

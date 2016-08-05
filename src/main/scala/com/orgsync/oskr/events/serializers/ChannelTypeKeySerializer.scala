@@ -14,18 +14,16 @@
  * limitations under the License.
  */
 
-package com.orgsync.oskr.events.messages
+package com.orgsync.oskr.events.serializers
 
-import java.time.Instant
-import java.util.UUID
+import com.orgsync.oskr.events.messages.parts.ChannelType
+import org.json4s.{CustomKeySerializer, DefaultFormats, _}
 
-import com.orgsync.oskr.events.messages.events.EventType
-import org.json4s.JsonAST.JValue
-
-case class Event(
-  deliveryId: UUID,
-  action    : EventType,
-  at        : Instant,
-  data      : Option[JValue]
-)
-
+object ChannelTypeKeySerializer extends CustomKeySerializer[ChannelType](f => ( {
+  case s: String => {
+    implicit val formats = DefaultFormats + ChannelTypeSerializer
+    JString(s).extract[ChannelType]
+  }
+}, {
+  case x: ChannelType => x.name
+}))

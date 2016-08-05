@@ -16,8 +16,6 @@
 
 package com.orgsync.oskr.events.messages.events
 
-import org.json4s._
-
 sealed trait EventType {
   def name: String
 }
@@ -33,11 +31,3 @@ case object Acknowledgement extends EventType {
 case object Failure extends EventType {
   val name = "failure"
 }
-
-object EventTypeSerializer extends CustomSerializer[EventType](f => ( {
-  case JString(Delivery.name) => Delivery
-  case JString(Acknowledgement.name) => Acknowledgement
-  case JString(Failure.name) => Failure
-}, {
-  case eventType: EventType => JString(eventType.name)
-}))

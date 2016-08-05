@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package com.orgsync.oskr.events.streams
+package com.orgsync.oskr.events.streams.parts
 
 import java.io.Serializable
-import java.lang
 import java.time.Duration
-import java.util
+import java.{lang, util}
 import java.util.concurrent.TimeUnit
 
 import com.google.common.cache.{CacheBuilder, CacheLoader, LoadingCache}

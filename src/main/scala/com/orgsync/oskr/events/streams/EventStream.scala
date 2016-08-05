@@ -19,7 +19,9 @@ package com.orgsync.oskr.events.streams
 import java.time.Duration
 
 import com.orgsync.oskr.events.Utilities
-import com.orgsync.oskr.events.messages.{BoundedEventWatermarkAssigner, Event, EventParser, PeriodicEventWatermarkAssigner}
+import com.orgsync.oskr.events.messages.Event
+import com.orgsync.oskr.events.parsers.EventParser
+import com.orgsync.oskr.events.watermarks.{BoundedEventWatermarkAssigner, PeriodicEventWatermarkAssigner}
 import org.apache.flink.api.scala._
 import org.apache.flink.configuration.Configuration
 import org.apache.flink.streaming.api.scala.{DataStream, StreamExecutionEnvironment}

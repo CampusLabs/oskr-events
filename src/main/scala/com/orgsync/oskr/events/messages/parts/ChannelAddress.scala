@@ -19,10 +19,6 @@ package com.orgsync.oskr.events.messages.parts
 import java.time.Duration
 import java.util.UUID
 
-import com.orgsync.oskr.events.Utilities
-import org.apache.flink.configuration.Configuration
-import org.json4s._
-
 sealed trait ChannelAddress {
   def channel: ChannelType
 
@@ -65,30 +61,4 @@ final case class EmailChannelAddress(
   val channel = Email
 }
 
-class ChannelAddressSerializer(parameters: Configuration)
-  extends CustomSerializer[ChannelAddress](f => ( {
-    case JObject(JField("type", JString(t)) :: JField("address", JString(a)) :: rs) =>
-      val channelType = t match {
-        case Web.name => Web
-        case Push.name => Push
-        case SMS.name => SMS
-        case Email.name => Email
-      }
 
-      val delay = rs match {
-        case List(JField("delay", JString(d))) => Duration.parse(d)
-        case _ => Utilities.channelDelay(parameters, channelType)
-      }
-
-      channelType match {
-        case Web => WebChannelAddress(a, delay, None)
-        case Push => PushChannelAddress(a, delay, None)
-        case SMS => SMSChannelAddress(a, delay, None)
-        case Email => EmailChannelAddress(a, delay, None)
-      }
-  }, {
-    case channelAddress: ChannelAddress =>
-      new JObject(JField("type", JString(channelAddress.channel.name)) ::
-        JField("address", JString(channelAddress.address)) ::
-        JField("delay", JString(channelAddress.delay.toString)) :: Nil)
-  }))

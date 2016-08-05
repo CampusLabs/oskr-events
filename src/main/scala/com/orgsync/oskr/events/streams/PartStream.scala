@@ -21,29 +21,15 @@ import java.util.UUID
 
 import com.orgsync.oskr.events.Utilities
 import com.orgsync.oskr.events.messages.parts.ChannelAddress
-import com.orgsync.oskr.events.messages.{BoundedPartWatermarkAssigner, Part, PartParser, PeriodicPartWatermarkAssigner}
+import com.orgsync.oskr.events.messages.Part
+import com.orgsync.oskr.events.streams.parts.{DedupeFilterFunction, ParsePart}
+import com.orgsync.oskr.events.watermarks.{BoundedPartWatermarkAssigner, PeriodicPartWatermarkAssigner}
 import com.softwaremill.quicklens._
-import org.apache.flink.api.common.functions.RichFlatMapFunction
 import org.apache.flink.api.scala._
 import org.apache.flink.configuration.Configuration
 import org.apache.flink.streaming.api.scala.{SplitStream, StreamExecutionEnvironment}
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer09
 import org.apache.flink.streaming.util.serialization.SimpleStringSchema
-import org.apache.flink.util.Collector
-
-class ParsePart(parameters: Configuration)
-  extends RichFlatMapFunction[String, Part] {
-
-  var parser: PartParser = _
-
-  override def flatMap(json: String, out: Collector[Part]): Unit = {
-    parser.parsePart(json).foreach(out.collect)
-  }
-
-  override def open(parameters: Configuration): Unit = {
-    parser = new PartParser(parameters)
-  }
-}
 
 object PartStream {
   val Grouped = "grouped"
