@@ -112,6 +112,8 @@
     <orderEntry type="library" name="Maven: org.mozilla:rhino:1.7R4" level="project" />
     <orderEntry type="library" name="Maven: com.github.jknack:handlebars-guava-cache:4.0.5" level="project" />
     <orderEntry type="library" name="Maven: com.github.jknack:handlebars-jackson2:4.0.5" level="project" />
+    <orderEntry type="library" name="Maven: com.mitchellbosecke:pebble:2.2.2" level="project" />
+    <orderEntry type="library" name="Maven: com.coverity.security:coverity-escapers:1.1" level="project" />
     <orderEntry type="library" name="Maven: org.threeten:threeten-extra:1.0" level="project" />
   </component>
 </module>

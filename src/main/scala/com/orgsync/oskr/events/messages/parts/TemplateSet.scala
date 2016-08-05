@@ -121,6 +121,7 @@ final case class TemplateSet(
   ): String = {
     templateName match {
       case "template/handlebars" => cache.renderHandlebars(template, data)
+      case "template/pebble" => cache.renderPebble(template, data)
       case _ => template
     }
   }
