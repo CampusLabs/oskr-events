@@ -16,14 +16,14 @@
 
 package com.orgsync.oskr.events.streams.delivery
 
-import java.io.StringWriter
+import java.io.{IOException, StringWriter}
 import java.util.concurrent.TimeUnit
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.jknack.handlebars._
 import com.github.jknack.handlebars.cache.GuavaTemplateCache
 import com.github.jknack.handlebars.context.MapValueResolver
-import com.github.jknack.handlebars.io.TemplateSource
+import com.github.jknack.handlebars.io.{TemplateLoader, TemplateSource}
 import com.google.common.cache.CacheBuilder
 import com.mitchellbosecke.pebble.PebbleEngine
 import com.mitchellbosecke.pebble.loader.StringLoader
@@ -33,6 +33,17 @@ import org.json4s.jackson.JsonMethods._
 import org.json4s.JsonAST.JObject
 
 class TemplateCache {
+  private object HandlebersLoader extends TemplateLoader {
+    override def sourceAt(s: String): TemplateSource = {
+      throw new IOException("template loading is not supported")
+    }
+    override def getPrefix: String = "template/"
+    override def setPrefix(s: String): Unit = {}
+    override def getSuffix: String = "hbs"
+    override def setSuffix(s: String): Unit = {}
+    override def resolve(s: String): String = ""
+  }
+
   private val jsonObjectMapper = new ObjectMapper
 
   private val handlebarsCache = CacheBuilder
@@ -42,6 +53,7 @@ class TemplateCache {
     .build[TemplateSource, Template]
 
   private val handlebars = new Handlebars()
+    .`with`(HandlebersLoader)
     .`with`(new GuavaTemplateCache(handlebarsCache))
 
   def renderHandlebars(template: String, context: JObject): String = {
