@@ -21,6 +21,7 @@ import org.json4s.CustomSerializer
 import org.json4s.JsonAST.JString
 
 object ChannelTypeSerializer extends CustomSerializer[ChannelType](f => ( {
+  case JString(Storage.name) => Storage
   case JString(Web.name) => Web
   case JString(SMS.name) => SMS
   case JString(Push.name) => Push

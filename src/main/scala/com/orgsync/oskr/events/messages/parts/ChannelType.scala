@@ -21,6 +21,11 @@ sealed trait ChannelType {
   def defaultDelay: String
 }
 
+case object Storage extends ChannelType {
+  val name = "storage"
+  val defaultDelay = "PT0S"
+}
+
 case object Web extends ChannelType {
   val name = "web"
   val defaultDelay = "PT0S"

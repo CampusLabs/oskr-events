@@ -33,32 +33,34 @@ COPY ./bin/load.sh /usr/local/bin/
 
 WORKDIR /opt/oskr-events
 
-ENV JOBMANAGER_CONNECT         jobmanager
-ENV PARALLELISM                8
+ENV JOBMANAGER_CONNECT           jobmanager
+ENV PARALLELISM                  8
 
-ENV JOB_NAME                   oskr_event_processing
-ENV CHECKPOINT_INTERVAL        PT5S
-ENV STATE_BACKEND_PATH         file:///tmp/state.db
-ENV KAFKA_BOOTSTRAP            kafka:9092
-ENV KAFKA_GROUP                oskr-events
-ENV KAFKA_PART_TOPIC           Communications.MessageParts
-ENV KAFKA_EVENT_TOPIC          Communications.Events
-ENV WATERMARKS                 periodic
-ENV MAX_PART_OUT_OF_ORDER      PT5S
-ENV MAX_EVENT_OUT_OF_ORDER     PT5S
-ENV MAX_PART_LAG               PT5S
-ENV MAX_EVENT_LAG              PT5S
-ENV WEB_CHANNEL_DELAY          PT0S
-ENV PUSH_CHANNEL_DELAY         PT5S
-ENV SMS_CHANNEL_DELAY          PT30S
-ENV EMAIL_CHANNEL_DELAY        PT1M
-ENV DEDUPE_CACHE_TIME          PT1H
-ENV ALLOWED_LATENESS           PT1H
-ENV GROUPING_GAP               PT5M
-ENV MAX_DELIVERY_TIME          PT168H
-ENV KAFKA_WEB_DELIVERY_TOPIC   Communications.Deliveries.Web
-ENV KAFKA_PUSH_DELIVERY_TOPIC  Communications.Deliveries.Push
-ENV KAFKA_SMS_DELIVERY_TOPIC   Communications.Deliveries.Sms
-ENV KAFKA_EMAIL_DELIVERY_TOPIC Communications.Deliveries.Email
+ENV JOB_NAME                     oskr_event_processing
+ENV CHECKPOINT_INTERVAL          PT5S
+ENV STATE_BACKEND_PATH           file:///tmp/state.db
+ENV KAFKA_BOOTSTRAP              kafka:9092
+ENV KAFKA_GROUP                  oskr-events
+ENV KAFKA_PART_TOPIC             Communications.MessageParts
+ENV KAFKA_EVENT_TOPIC            Communications.Events
+ENV WATERMARKS                   periodic
+ENV MAX_PART_OUT_OF_ORDER        PT5S
+ENV MAX_EVENT_OUT_OF_ORDER       PT5S
+ENV MAX_PART_LAG                 PT5S
+ENV MAX_EVENT_LAG                PT5S
+ENV WEB_CHANNEL_DELAY            PT0S
+ENV PUSH_CHANNEL_DELAY           PT5S
+ENV SMS_CHANNEL_DELAY            PT30S
+ENV STORAGE_CHANNEL_DELAY        PT0S
+ENV EMAIL_CHANNEL_DELAY          PT1M
+ENV DEDUPE_CACHE_TIME            PT1H
+ENV ALLOWED_LATENESS             PT1H
+ENV GROUPING_GAP                 PT5M
+ENV MAX_DELIVERY_TIME            PT168H
+ENV KAFKA_STORAGE_DELIVERY_TOPIC Communications.Deliveries.Storage
+ENV KAFKA_WEB_DELIVERY_TOPIC     Communications.Deliveries.Web
+ENV KAFKA_PUSH_DELIVERY_TOPIC    Communications.Deliveries.Push
+ENV KAFKA_SMS_DELIVERY_TOPIC     Communications.Deliveries.Sms
+ENV KAFKA_EMAIL_DELIVERY_TOPIC   Communications.Deliveries.Email
 
 CMD ["/usr/local/bin/load.sh"]

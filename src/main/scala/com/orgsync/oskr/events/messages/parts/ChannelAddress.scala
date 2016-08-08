@@ -29,6 +29,14 @@ sealed trait ChannelAddress {
   def deliveryId: Option[UUID]
 }
 
+final case class StorageChannelAddress(
+  address   : String,
+  delay     : Duration,
+  deliveryId: Option[UUID]
+) extends ChannelAddress {
+  val channel = Storage
+}
+
 final case class WebChannelAddress(
   address   : String,
   delay     : Duration,

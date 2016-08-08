@@ -41,7 +41,7 @@ object Utilities {
     properties.setProperty("acks", "all")
     properties.setProperty("compression.type", "gzip")
     properties.setProperty("retries", "2147483647")
-    properties.setProperty("client.id", "oskr event processor")
+    properties.setProperty("client.id", "oskr_event_processor")
 
     properties
   }

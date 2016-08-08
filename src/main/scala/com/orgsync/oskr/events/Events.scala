@@ -18,7 +18,7 @@ package com.orgsync.oskr.events
 
 import java.time.Duration
 
-import com.orgsync.oskr.events.messages.parts.{Email, Push, SMS, Web}
+import com.orgsync.oskr.events.messages.parts._
 import com.orgsync.oskr.events.streams.delivery.SerializeDelivery
 import com.orgsync.oskr.events.streams._
 import org.apache.flink.api.scala._
@@ -59,7 +59,7 @@ object Events {
     val sendStream = DeliveryStream.getStream(messageStream, eventStream, configuration)
       .split(d => List(d.channel.name))
 
-    List(Web, SMS, Push, Email).map(_.name).map(name => {
+    List(Storage, Web, SMS, Push, Email).map(_.name).map(name => {
       val capName = name.capitalize
       val propertyName = "kafka" + capName + "DeliveryTopic"
       val defaultValue = "Communications.Deliveries." + capName

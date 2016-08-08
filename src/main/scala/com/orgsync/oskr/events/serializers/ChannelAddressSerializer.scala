@@ -28,6 +28,7 @@ class ChannelAddressSerializer(parameters: Configuration)
   extends CustomSerializer[ChannelAddress](f => ( {
     case JObject(JField("type", JString(t)) :: JField("address", JString(a)) :: rs) =>
       val channelType = t match {
+        case Storage.name => Storage
         case Web.name => Web
         case Push.name => Push
         case SMS.name => SMS
@@ -40,6 +41,7 @@ class ChannelAddressSerializer(parameters: Configuration)
       }
 
       channelType match {
+        case Storage => StorageChannelAddress(a, delay, None)
         case Web => WebChannelAddress(a, delay, None)
         case Push => PushChannelAddress(a, delay, None)
         case SMS => SMSChannelAddress(a, delay, None)

@@ -53,6 +53,7 @@ function run() {
   args[kafkaPartTopic]=$KAFKA_PART_TOPIC
   args[kafkaPushDeliveryTopic]=$KAFKA_PUSH_DELIVERY_TOPIC
   args[kafkaSmsDeliveryTopic]=$KAFKA_SMS_DELIVERY_TOPIC
+  args[kafkaStorageDeliveryTopic]=$KAFKA_STORAGE_DELIVERY_TOPIC
   args[kafkaWebDeliveryTopic]=$KAFKA_WEB_DELIVERY_TOPIC
   args[maxDeliveryTime]=$MAX_DELIVERY_TIME
   args[maxEventLag]=$MAX_EVENT_LAG
@@ -61,6 +62,7 @@ function run() {
   args[maxPartOutOfOrder]=$MAX_PART_OUT_OF_ORDER
   args[pushChannelDelay]=$PUSH_CHANNEL_DELAY
   args[smsChannelDelay]=$SMS_CHANNEL_DELAY
+  args[storageChannelDelay]=$STORAGE_CHANNEL_DELAY
   args[stateBackendPath]=$STATE_BACKEND_PATH
   args[watermarks]=$WATERMARKS
   args[webChannelDelay]=$WEB_CHANNEL_DELAY
