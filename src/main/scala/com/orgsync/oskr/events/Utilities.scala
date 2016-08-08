@@ -54,6 +54,13 @@ object Utilities {
     }
   }
 
+  def channelTopic(parameters: Configuration, c: ChannelType): String = {
+    val capName = c.name.capitalize
+    val propertyName = "kafka" + capName + "DeliveryTopic"
+    val defaultValue = "Communications.Deliveries." + capName
+    parameters.getString(propertyName, defaultValue)
+  }
+
   def channelDelay(parameters: Configuration, c: ChannelType): Duration = {
     val paramName = s"${c}ChannelDelay"
     Duration.parse(parameters.getString(paramName, c.defaultDelay))
