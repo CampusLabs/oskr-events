@@ -20,18 +20,18 @@ import java.time.Duration
 
 import com.orgsync.oskr.events.messages.{Message, Part, Parts}
 import com.orgsync.oskr.events.streams.grouping.PartGroupingWindows
-import org.apache.flink.api.java.utils.ParameterTool
 import org.apache.flink.api.scala._
+import org.apache.flink.configuration.Configuration
 import org.apache.flink.streaming.api.scala.DataStream
 import org.apache.flink.streaming.api.windowing.time.Time
 import org.apache.flink.streaming.api.windowing.windows.TimeWindow
 import org.apache.flink.util.Collector
 
-class GroupStream(parameters: ParameterTool) {
-  private val groupingGap = Duration.parse(parameters.get("groupingGap", "PT5M"))
+class GroupStream(parameters: Configuration) {
+  private val groupingGap = Duration.parse(parameters.getString("groupingGap", "PT5M"))
 
   private val allowedLateness = Time.milliseconds(
-    Duration.parse(parameters.get("allowedLateness", "PT1H")).toMillis
+    Duration.parse(parameters.getString("allowedLateness", "PT1H")).toMillis
   )
 
   private val reducePartsWindow = (
