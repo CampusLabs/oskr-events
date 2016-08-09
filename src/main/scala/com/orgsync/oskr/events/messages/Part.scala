@@ -33,8 +33,7 @@ final case class Part(
   groupingKey: Option[String],
   groupingGap: Option[Duration],
   tags       : Option[Set[String]],
-  digestKey  : Option[String],
-  digestAt   : Option[Instant],
+  digest     : Option[Digest],
   templates  : TemplateSet,
   data       : JValue
 ) {
@@ -43,15 +42,11 @@ final case class Part(
     val messageId = UUID.nameUUIDFromBytes(idSource.getBytes)
 
     val sent = Interval.of(sentAt, sentAt)
-
-    val messageTags = tags match {
-      case Some(ts) => ts
-      case None => Set[String]()
-    }
+    val messageTags = tags.getOrElse(Set[String]())
 
     Message(
       messageId, Set(senderId), recipient, channels, sent, messageTags,
-      digestKey, digestAt, templates, List(id), JArray(List(data))
+      digest, templates, List(id), JArray(List(data))
     )
   }
 }
@@ -77,8 +72,7 @@ object Parts {
       .headOption
       .map(p => Message(
         messageId, senderIds, p.recipient, p.channels, sendInterval, tags,
-        p.digestKey, p.digestAt, p.templates, partList.map(_.id),
-        JArray(partList.map(_.data))
+        p.digest, p.templates, partList.map(_.id), JArray(partList.map(_.data))
       ))
   }
 }

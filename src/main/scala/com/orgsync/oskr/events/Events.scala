@@ -47,7 +47,7 @@ object Events {
     val partStream = PartStream.getStream(env, configuration)
     val eventStream = EventStream.getStream(env, configuration)
 
-    val groupedStream = new GroupStream(parameters)
+    val groupedStream = new GroupStream(configuration)
       .getStream(partStream.select(PartStream.Grouped))
 
     val ungroupedStream = partStream
@@ -55,8 +55,9 @@ object Events {
       .map(_.toMessage)
 
     val messageStream = ungroupedStream.union(groupedStream)
+    val digestedStream = DigestedStream.getStream(messageStream)
 
-    val sendStream = DeliveryStream.getStream(messageStream, eventStream, configuration)
+    val sendStream = DeliveryStream.getStream(digestedStream, eventStream, configuration)
       .split(d => List(d.channel.name))
 
     List(Storage, Web, SMS, Push, Email).map(channel => {
