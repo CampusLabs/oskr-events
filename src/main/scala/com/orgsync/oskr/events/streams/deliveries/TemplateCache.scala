@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.orgsync.oskr.events.streams.delivery
+package com.orgsync.oskr.events.streams.deliveries
 
 import java.io.{IOException, StringWriter}
 import java.util.concurrent.TimeUnit

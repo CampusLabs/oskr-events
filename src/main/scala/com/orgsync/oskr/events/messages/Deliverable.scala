@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 
-package com.orgsync.oskr.events.messages.parts
+package com.orgsync.oskr.events.messages
 
-import java.time.Instant
+import java.util.UUID
 
-final case class Digest(
-  key     : String,
-  at      : Instant,
-  channels: List[ChannelType]
-)
+import com.orgsync.oskr.events.messages.parts.ChannelAddress
+import com.orgsync.oskr.events.streams.deliveries.TemplateCache
+
+trait Deliverable {
+  val id: UUID
+  val channels: List[ChannelAddress]
+  def delivery(address: ChannelAddress, cache: TemplateCache): Option[Delivery]
+}

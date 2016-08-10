@@ -33,7 +33,7 @@ final case class Part(
   groupingKey: Option[String],
   groupingGap: Option[Duration],
   tags       : Option[Set[String]],
-  digest     : Option[Digest],
+  digest     : Option[DigestSpecification],
   templates  : TemplateSet,
   data       : JValue
 ) {

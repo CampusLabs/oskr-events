@@ -19,8 +19,8 @@ package com.orgsync.oskr.events.streams
 import java.time.Duration
 
 import com.orgsync.oskr.events.messages.events.Acknowledgement
-import com.orgsync.oskr.events.messages.{Delivery, Event, Message}
-import com.orgsync.oskr.events.streams.delivery.{AssignChannel, ScheduleChannelTrigger}
+import com.orgsync.oskr.events.messages.{Delivery, Digest, Event, Message}
+import com.orgsync.oskr.events.streams.deliveries.{AssignChannel, ScheduleChannelTrigger}
 import org.apache.flink.api.scala._
 import org.apache.flink.configuration.Configuration
 import org.apache.flink.streaming.api.scala.DataStream
@@ -31,7 +31,7 @@ import org.apache.flink.streaming.api.windowing.windows.TimeWindow
 
 object DeliveryStream {
   def getStream(
-    messages     : DataStream[Message],
+    deliverables : DataStream[Either[Message, Digest]],
     events       : DataStream[Event],
     configuration: Configuration
   ): DataStream[Delivery] = {
@@ -45,8 +45,11 @@ object DeliveryStream {
 
     val deliverySlideTime = Time.milliseconds(maxDeliveryTime.toMilliseconds / 2)
 
-    val ackedMessageIds = messages
-      .flatMap(m => m.channels.map(c => (m.id, c.deliveryId)))
+    val ackedDeliverableIds = deliverables
+      .flatMap(e => {
+        val deliverable = e.merge
+        deliverable.channels.map(c => (deliverable.id, c.deliveryId))
+      })
       .join(ackEvents)
       .where(_._2).equalTo(e => Option(e.deliveryId))
       .window(SlidingProcessingTimeWindows.of(maxDeliveryTime, deliverySlideTime))
@@ -54,9 +57,9 @@ object DeliveryStream {
       .apply((t, event) => t._1)
       .uid("acked message ids")
 
-    messages
-      .coGroup(ackedMessageIds)
-      .where(_.id).equalTo(id => id)
+    deliverables
+      .coGroup(ackedDeliverableIds)
+      .where(_.merge.id).equalTo(id => id)
       .window(GlobalWindows.create)
       .trigger(new ScheduleChannelTrigger)
       .apply(new AssignChannel)

@@ -18,7 +18,7 @@ package com.orgsync.oskr.events.messages.parts
 
 import com.orgsync.oskr.events.ChannelTemplateMap
 import com.orgsync.oskr.events.messages.Message
-import com.orgsync.oskr.events.streams.delivery.TemplateCache
+import com.orgsync.oskr.events.streams.deliveries.TemplateCache
 import org.json4s.JsonAST._
 
 import scala.util.Try

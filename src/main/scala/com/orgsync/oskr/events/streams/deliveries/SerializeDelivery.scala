@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.orgsync.oskr.events.streams.delivery
+package com.orgsync.oskr.events.streams.deliveries
 
 import com.orgsync.oskr.events.messages.Delivery
 import com.orgsync.oskr.events.serializers._

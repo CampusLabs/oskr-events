@@ -19,7 +19,7 @@ package com.orgsync.oskr.events
 import java.time.Duration
 
 import com.orgsync.oskr.events.messages.parts._
-import com.orgsync.oskr.events.streams.delivery.SerializeDelivery
+import com.orgsync.oskr.events.streams.deliveries.SerializeDelivery
 import com.orgsync.oskr.events.streams._
 import org.apache.flink.api.scala._
 import org.apache.flink.api.java.utils.ParameterTool

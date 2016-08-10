@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package com.orgsync.oskr.events.streams.delivery
+package com.orgsync.oskr.events.streams.deliveries
 
 import java.lang.Iterable
 import java.util.UUID
 
-import com.orgsync.oskr.events.messages.{Delivery, Message}
+import com.orgsync.oskr.events.messages.{Delivery, Digest, Message}
 import org.apache.flink.api.common.functions.RichCoGroupFunction
 import org.apache.flink.api.common.state.{ValueState, ValueStateDescriptor}
 import org.apache.flink.configuration.Configuration
@@ -27,21 +27,21 @@ import org.apache.flink.util.Collector
 
 import scala.collection.JavaConverters._
 class AssignChannel
-  extends RichCoGroupFunction[Message, UUID, Delivery] {
+  extends RichCoGroupFunction[Either[Message, Digest], UUID, Delivery] {
 
   var index: ValueState[Int] = _
   var cache: TemplateCache = _
 
   override def coGroup(
-    messages  : Iterable[Message],
-    messageIds: Iterable[UUID],
-    out       : Collector[Delivery]
-  ): Unit = messages.asScala.take(1).foreach {
-    message =>
+    deliverables  : Iterable[Either[Message, Digest]],
+    deliverableIds: Iterable[UUID],
+    out           : Collector[Delivery]
+  ): Unit = deliverables.asScala.take(1).foreach {
+    deliverable =>
       val currentIndex = index.value
-      val channels = message.channels
+      val channels = deliverable.merge.channels
       val channelCount = channels.length
-      val acked = messageIds.asScala.exists(id => true)
+      val acked = deliverableIds.asScala.exists(id => true)
 
       if (acked)
         index.clear()
@@ -52,7 +52,7 @@ class AssignChannel
         0 until triggers foreach {
           i =>
             val channelAddress = channels(currentIndex + i)
-            message.delivery(channelAddress, cache).foreach(out.collect)
+            deliverable.merge.delivery(channelAddress, cache).foreach(out.collect)
         }
 
         index.update(currentIndex + triggers)

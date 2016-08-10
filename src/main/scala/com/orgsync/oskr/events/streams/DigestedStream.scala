@@ -16,12 +16,15 @@
 
 package com.orgsync.oskr.events.streams
 
-import com.orgsync.oskr.events.messages.Message
+import com.orgsync.oskr.events.messages.{Digest, Message}
 import com.orgsync.oskr.events.messages.parts.ChannelType
+import com.orgsync.oskr.events.streams.digests.ScheduleDigestTrigger
 import com.softwaremill.quicklens._
 import org.apache.flink.api.scala._
 import org.apache.flink.streaming.api.scala.{DataStream, SplitStream}
 import org.apache.flink.streaming.api.windowing.assigners.GlobalWindows
+import org.apache.flink.streaming.api.windowing.windows.GlobalWindow
+import org.apache.flink.util.Collector
 
 import scala.collection.mutable
 
@@ -54,20 +57,32 @@ object DigestedStream {
     })
   }
 
-  private def digestStream(messageStream: DataStream[Message]): DataStream[Message] = {
-    messageStream
-      .keyBy(_.recipient.id)
-      .window(GlobalWindows.create())
-
-    messageStream
+  private val createDigest = (
+    key     : (String, String),
+    window  : GlobalWindow,
+    messages: Iterable[Message],
+    out     : Collector[Digest]
+  ) => {
+    
   }
 
-  def getStream(messageStream: DataStream[Message]): DataStream[Message] = {
+  private def digestStream(messageStream: DataStream[Message]): DataStream[Digest] = {
+    messageStream
+      .keyBy(m => (m.recipient.id, m.digest.map(_.key).getOrElse("default")))
+      .window(GlobalWindows.create())
+      .trigger(new ScheduleDigestTrigger)
+      .apply(createDigest)
+  }
+
+  def getStream(messageStream: DataStream[Message]): DataStream[Either[Message, Digest]] = {
     val splitStream = extractDigests(messageStream)
 
-    val immediateMessages = splitStream.select(Immediate)
-    val digestMessages = splitStream.select(Digests)
+    val immediates: DataStream[Either[Message, Digest]] = splitStream
+      .select(Immediate).map(m => Left(m))
 
-    immediateMessages.union(digestStream(digestMessages))
+    val digests: DataStream[Either[Message, Digest]] = digestStream(splitStream.select(Digests))
+      .map(d => Right(d))
+
+    immediates.union(digests)
   }
 }

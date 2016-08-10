@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package com.orgsync.oskr.events.streams.delivery
+package com.orgsync.oskr.events.streams.deliveries
 
 import java.util.UUID
 
-import com.orgsync.oskr.events.messages.Message
+import com.orgsync.oskr.events.messages.{Digest, Message}
 import org.apache.flink.api.common.state.ValueStateDescriptor
 import org.apache.flink.streaming.api.datastream.CoGroupedStreams.TaggedUnion
 import org.apache.flink.streaming.api.windowing.triggers.{Trigger, TriggerResult}
@@ -26,7 +26,7 @@ import org.apache.flink.streaming.api.windowing.triggers.Trigger.TriggerContext
 import org.apache.flink.streaming.api.windowing.windows.Window
 
 class ScheduleChannelTrigger[W <: Window]
-  extends Trigger[TaggedUnion[Message, UUID], W] {
+  extends Trigger[TaggedUnion[Either[Message, Digest], UUID], W] {
 
   private val countDescriptor = new ValueStateDescriptor(
     "triggerCount", classOf[Int], 0
@@ -41,7 +41,7 @@ class ScheduleChannelTrigger[W <: Window]
   )
 
   override def onElement(
-    t: TaggedUnion[Message, UUID],
+    t             : TaggedUnion[Either[Message, Digest], UUID],
     timestamp     : Long,
     window        : W,
     triggerContext: TriggerContext
@@ -51,20 +51,21 @@ class ScheduleChannelTrigger[W <: Window]
     val acked = triggerContext.getPartitionedState(ackedDescription)
     val now = triggerContext.getCurrentProcessingTime
 
-    val maybeMessage = Option(t.getOne)
-    val maybeMessageId = Option(t.getTwo)
+    val maybeDeliverable = Option(t.getOne)
+    val maybeDeliverableId = Option(t.getTwo)
 
-    maybeMessageId.foreach(id => acked.update(true))
+    maybeDeliverableId.foreach(id => acked.update(true))
 
     if (!initialized.value)
-      maybeMessage.foreach {
-        s =>
+      maybeDeliverable.foreach {
+        s => {
           initialized.update(true)
-          triggerCount.update(s.channels.length)
-          s.channels.foreach {
+          triggerCount.update(s.merge.channels.length)
+          s.merge.channels.foreach {
             c =>
               triggerContext.registerProcessingTimeTimer(now + c.delay.toMillis)
           }
+        }
       }
 
     if (acked.value) {
