@@ -16,19 +16,23 @@
 
 package com.orgsync.oskr.events.streams
 
+import java.time.Duration
+
 import com.orgsync.oskr.events.messages.{Digest, Message}
 import com.orgsync.oskr.events.messages.parts.ChannelType
 import com.orgsync.oskr.events.streams.digests.ScheduleDigestTrigger
 import com.softwaremill.quicklens._
 import org.apache.flink.api.scala._
+import org.apache.flink.configuration.Configuration
 import org.apache.flink.streaming.api.scala.{DataStream, SplitStream}
 import org.apache.flink.streaming.api.windowing.assigners.GlobalWindows
+import org.apache.flink.streaming.api.windowing.time.Time
 import org.apache.flink.streaming.api.windowing.windows.GlobalWindow
 import org.apache.flink.util.Collector
 
 import scala.collection.mutable
 
-object DigestedStream {
+class DigestedStream(parameters: Configuration) {
   private val Digests = "digests"
   private val Immediate = "immediate"
 
@@ -63,13 +67,18 @@ object DigestedStream {
     messages: Iterable[Message],
     out     : Collector[Digest]
   ) => {
-    
+
   }
+
+  private val allowedLateness = Time.milliseconds(
+    Duration.parse(parameters.getString("allowedLateness", "PT1H")).toMillis
+  )
 
   private def digestStream(messageStream: DataStream[Message]): DataStream[Digest] = {
     messageStream
       .keyBy(m => (m.recipient.id, m.digest.map(_.key).getOrElse("default")))
       .window(GlobalWindows.create())
+      .allowedLateness(allowedLateness)
       .trigger(new ScheduleDigestTrigger)
       .apply(createDigest)
   }
