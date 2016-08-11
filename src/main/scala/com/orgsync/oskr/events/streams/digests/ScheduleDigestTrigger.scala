@@ -37,17 +37,18 @@ class ScheduleDigestTrigger[W <: Window] extends Trigger[Message, W] {
   ): TriggerResult = {
     val scheduledState = triggerContext.getPartitionedState(scheduledAt)
     val scheduled = scheduledState.value()
-    val scheduledTimestamp = scheduled.toEpochMilli
     val at = message.digest.map(_.at).getOrElse(Instant.EPOCH)
     val now = Instant.ofEpochMilli(timestamp)
 
     if (at.isBefore(now)) {
-      triggerContext.deleteEventTimeTimer(scheduledTimestamp)
+      triggerContext.deleteEventTimeTimer(scheduled.toEpochMilli)
       scheduledState.clear()
       TriggerResult.FIRE_AND_PURGE
     } else if (at != scheduled) {
-      triggerContext.deleteEventTimeTimer(scheduledTimestamp)
-      triggerContext.registerEventTimeTimer(scheduledTimestamp)
+      if (scheduled != Instant.EPOCH)
+        triggerContext.deleteEventTimeTimer(scheduled.toEpochMilli)
+
+      triggerContext.registerEventTimeTimer(at.toEpochMilli)
       scheduledState.update(at)
       TriggerResult.CONTINUE
     } else
@@ -68,7 +69,5 @@ class ScheduleDigestTrigger[W <: Window] extends Trigger[Message, W] {
     timestamp     : Long,
     window        : W,
     triggerContext: TriggerContext
-  ): TriggerResult = {
-    TriggerResult.CONTINUE
-  }
+  ): TriggerResult = TriggerResult.CONTINUE
 }

@@ -16,9 +16,10 @@
 
 package com.orgsync.oskr.events.streams
 
-import java.time.Duration
+import java.time.{Duration, Instant}
+import java.util.UUID
 
-import com.orgsync.oskr.events.messages.{Message, Part, Parts}
+import com.orgsync.oskr.events.messages.{Message, Part}
 import com.orgsync.oskr.events.streams.grouping.PartGroupingWindows
 import org.apache.flink.api.scala._
 import org.apache.flink.configuration.Configuration
@@ -26,6 +27,11 @@ import org.apache.flink.streaming.api.scala.DataStream
 import org.apache.flink.streaming.api.windowing.time.Time
 import org.apache.flink.streaming.api.windowing.windows.TimeWindow
 import org.apache.flink.util.Collector
+import org.json4s.JsonAST.{JArray, JValue}
+import org.threeten.extra.Interval
+
+import scala.collection.mutable
+import scala.collection.mutable.ListBuffer
 
 class GroupStream(parameters: Configuration) {
   private val groupingGap = Duration.parse(parameters.getString("groupingGap", "PT5M"))
@@ -35,15 +41,45 @@ class GroupStream(parameters: Configuration) {
   )
 
   private val reducePartsWindow = (
-    key: (String, Option[String]),
-    w: TimeWindow,
+    key: (String, String),
+    w  : TimeWindow,
     parts: Iterable[Part],
     out: Collector[Message]
-  ) => Parts.toMessage(parts).foreach(out.collect)
+  ) => {
+    val idBuf = new StringBuilder
+    val senderIds = mutable.Set[String]()
+    var lastPart = Option.empty[Part]
+    val sentAt = mutable.TreeSet[Instant]()
+    val tags = mutable.Set[String]()
+    val partIds = mutable.Set[String]()
+    val partData = ListBuffer[JValue]()
+
+    parts.foreach(part => {
+      idBuf ++= part.id
+      idBuf ++= part.recipient.id
+      senderIds += part.senderId
+      sentAt += part.sentAt
+      tags ++= part.tags.getOrElse(Set())
+      partIds += part.id
+      partData += part.data
+      lastPart = Option(part)
+    })
+
+    lastPart.foreach(part => {
+      val id = UUID.nameUUIDFromBytes(idBuf.toString.getBytes)
+      val sentInterval = Interval.of(sentAt.firstKey, sentAt.lastKey)
+
+      out.collect(Message(
+        id, senderIds.toSet, part.recipient, part.channels, sentInterval,
+        tags.toSet, part.digest, part.templates, partIds.toSet, JArray
+        (partData.toList)
+      ))
+    })
+  }
 
   def getStream(partStream: DataStream[Part]): DataStream[Message] = {
     partStream
-      .keyBy(p => (p.recipient.id, p.groupingKey))
+      .keyBy(p => (p.recipient.id, p.groupingKey.getOrElse("default")))
       .window(new PartGroupingWindows(groupingGap))
       .allowedLateness(allowedLateness)
       .apply(reducePartsWindow)

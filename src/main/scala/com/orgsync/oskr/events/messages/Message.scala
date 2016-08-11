@@ -33,7 +33,7 @@ final case class Message(
   tags        : Set[String],
   digest      : Option[DigestSpecification],
   templates   : TemplateSet,
-  partIds     : List[String],
+  partIds     : Set[String],
   partData    : JArray
 ) extends Deliverable {
   override def delivery(address: ChannelAddress, cache: TemplateCache): Option[Delivery] = {
@@ -47,5 +47,15 @@ final case class Message(
         partIds, c
       ))
     })
+  }
+
+  def digestKey: String = this.digest.map(_.key).getOrElse("default")
+
+  def toDigest: Digest = {
+    val idSource = digestKey + this.id.toString
+    val digestId = UUID.nameUUIDFromBytes(idSource.getBytes())
+
+    Digest(digestId, senderIds, recipient, channels, sentInterval, tags,
+      templates, partIds, List(this))
   }
 }

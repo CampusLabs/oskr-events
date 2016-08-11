@@ -60,7 +60,7 @@ final case class TemplateSet(
     cache    : TemplateCache
   ): Option[JValue] = {
     val template = templates.get(address.channel)
-    val partIDs = JArray(message.partIds.map(id => JString(id.toString)))
+    val partIDs = JArray(message.partIds.map(id => JString(id.toString)).toList)
     val tags = JArray(message.tags.map(JString).toList)
 
     val value = JObject(List(

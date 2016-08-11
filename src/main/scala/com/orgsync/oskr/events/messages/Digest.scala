@@ -16,6 +16,7 @@
 
 package com.orgsync.oskr.events.messages
 
+import java.time.Instant
 import java.util.UUID
 
 import com.orgsync.oskr.events.messages.parts.{ChannelAddress, Recipient, TemplateSet}
@@ -30,10 +31,19 @@ case class Digest(
   sentInterval: Interval,
   tags        : Set[String],
   templates   : TemplateSet,
-  partIds     : List[String],
+  partIds     : Set[String],
   messages    : List[Message]
 ) extends Deliverable {
   override def delivery(address: ChannelAddress, cache: TemplateCache): Option[Delivery] = {
-    None
+    val content = templates.renderDigest(address, messages, cache)
+    content.flatMap(c => {
+      val deliveryId = address.deliveryId
+      val deliveredAt = Instant.now()
+
+      deliveryId.map(id => Delivery(
+        id, address.channel, senderIds, sentInterval, recipient.id,
+        deliveredAt, tags, partIds, c
+      ))
+    })
   }
 }

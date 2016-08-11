@@ -21,6 +21,7 @@ import java.util.Properties
 
 import com.orgsync.oskr.events.messages.parts.ChannelType
 import org.apache.flink.configuration.Configuration
+import org.threeten.extra.Interval
 
 object Utilities {
   def kafkaConsumerProperties(parameters: Configuration): Properties = {
@@ -68,5 +69,12 @@ object Utilities {
 
   private def kafkaBootstrap(parameters: Configuration): String = {
     parameters.getString("kafkaBootstrap", "kafka:9092")
+  }
+
+  def mergeIntervals(a: Interval, b: Interval): Interval = {
+    val start = if (a.getStart.isBefore(b.getStart)) a else b
+    val end = if (a.getEnd.isAfter(b.getEnd)) a else b
+
+    Interval.of(start.getStart, end.getEnd)
   }
 }

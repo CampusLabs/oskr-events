@@ -38,7 +38,7 @@ final case class Part(
   data       : JValue
 ) {
   def toMessage: Message = {
-    val idSource = id + recipient.id
+    val idSource = recipient.id + id
     val messageId = UUID.nameUUIDFromBytes(idSource.getBytes)
 
     val sent = Interval.of(sentAt, sentAt)
@@ -46,34 +46,7 @@ final case class Part(
 
     Message(
       messageId, Set(senderId), recipient, channels, sent, messageTags,
-      digest, templates, List(id), JArray(List(data))
+      digest, templates, Set(id), JArray(List(data))
     )
   }
 }
-
-object Parts {
-  def toMessage(parts: Iterable[Part]): Option[Message] = {
-    val partList = parts.toList
-
-    val buf = new StringBuilder
-    partList.foreach(p => {
-      buf ++= p.id
-      buf ++= p.recipient.id
-    })
-
-    val messageId = UUID.nameUUIDFromBytes(buf.toString.getBytes)
-
-    val senderIds = partList.map(_.senderId).toSet
-    val sendTimes = partList.map(_.sentAt).sorted
-    val sendInterval = Interval.of(sendTimes.head, sendTimes.last)
-    val tags = partList.flatMap(_.tags.getOrElse(Set[String]())).toSet
-
-    partList
-      .headOption
-      .map(p => Message(
-        messageId, senderIds, p.recipient, p.channels, sendInterval, tags,
-        p.digest, p.templates, partList.map(_.id), JArray(partList.map(_.data))
-      ))
-  }
-}
-

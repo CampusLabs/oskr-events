@@ -31,6 +31,6 @@ case class Delivery(
   recipientId : String,
   scheduledAt : Instant,
   tags        : Set[String],
-  partIds     : List[String],
+  partIds     : Set[String],
   content     : JValue
 )
