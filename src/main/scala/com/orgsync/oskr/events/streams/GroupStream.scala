@@ -41,11 +41,13 @@ class GroupStream(parameters: Configuration) {
   )
 
   private val reducePartsWindow = (
-    key: (String, String),
-    w  : TimeWindow,
-    parts: Iterable[Part],
-    out: Collector[Message]
+    key         : (String, String),
+    window      : TimeWindow,
+    partIterable: Iterable[Part],
+    out         : Collector[Message]
   ) => {
+    val parts = partIterable.toList.sortBy(_.sentAt)
+
     val idBuf = new StringBuilder
     val senderIds = mutable.Set[String]()
     var lastPart = Option.empty[Part]

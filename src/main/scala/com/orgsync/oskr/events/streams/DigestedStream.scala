@@ -16,7 +16,7 @@
 
 package com.orgsync.oskr.events.streams
 
-import java.time.Duration
+import java.time.{Duration, Instant}
 import java.util.UUID
 
 import com.orgsync.oskr.events.Utilities
@@ -29,6 +29,9 @@ import org.apache.flink.configuration.Configuration
 import org.apache.flink.streaming.api.scala.{DataStream, SplitStream}
 import org.apache.flink.streaming.api.windowing.assigners.GlobalWindows
 import org.apache.flink.streaming.api.windowing.time.Time
+import org.apache.flink.streaming.api.windowing.windows.{GlobalWindow, TimeWindow}
+import org.apache.flink.util.Collector
+import org.threeten.extra.Interval
 
 import scala.collection.mutable
 
@@ -59,25 +62,39 @@ class DigestedStream(parameters: Configuration) {
   }
 
   private val reduceDigest = (
-    digestOption: Option[Digest],
-    message: Message
-  ) => digestOption match {
-    case None => Option(message.toDigest)
-    case Some(digest) =>
-      val idSource = digest.id.toString + message.id.toString
-      val id = UUID.nameUUIDFromBytes(idSource.getBytes)
-      val senderIds = digest.senderIds ++ message.senderIds
-      val sentInterval = Utilities.mergeIntervals(
-        digest.sentInterval, message.sentInterval
-      )
-      val tags = digest.tags ++ message.tags
-      val partIds = digest.partIds ++ message.partIds
-      val messages = digest.messages :+ message
+    key            : (String, String),
+    window         : GlobalWindow,
+    messageIterable: Iterable[Message],
+    out            : Collector[Digest]
+  ) => {
+    val messages = messageIterable.toList.sortBy(_.sentInterval.getEnd)
 
-      Option(Digest(
-        id, senderIds, message.recipient, message.channels, sentInterval,
-        tags, message.templates, partIds, messages
+    val idBuf = new StringBuilder
+    val senderIds = mutable.Set[String]()
+    var lastMessage = Option.empty[Message]
+    var sentInterval = Option.empty[Interval]
+    val tags = mutable.Set[String]()
+    val partIds = mutable.Set[String]()
+
+    messages.foreach(message => {
+      idBuf ++= message.id.toString
+      idBuf ++= message.digest.map(_.key).getOrElse("default")
+      senderIds ++= message.senderIds
+      sentInterval = Option(Utilities.mergeIntervals(
+        sentInterval.getOrElse(message.sentInterval), message.sentInterval
       ))
+      tags ++= message.tags
+      partIds ++= message.partIds
+      lastMessage = Option(message)
+    })
+
+    val id = UUID.nameUUIDFromBytes(idBuf.toString.getBytes)
+    val interval = sentInterval.getOrElse(Interval.of(Instant.EPOCH, Duration.ZERO))
+
+    lastMessage.foreach(message => out.collect(Digest(
+      id, senderIds.toSet, message.recipient, message.channels, interval,
+      tags.toSet, message.templates, partIds.toSet, messages
+    )))
   }
 
   private val allowedLateness = Time.milliseconds(
@@ -90,8 +107,7 @@ class DigestedStream(parameters: Configuration) {
       .window(GlobalWindows.create())
       .allowedLateness(allowedLateness)
       .trigger(new ScheduleDigestTrigger)
-      .fold(Option.empty[Digest])(reduceDigest)
-      .flatMap(identity(_))
+      .apply(reduceDigest)
   }
 
   def getStream(messageStream: DataStream[Message]): DataStream[Either[Message, Digest]] = {
