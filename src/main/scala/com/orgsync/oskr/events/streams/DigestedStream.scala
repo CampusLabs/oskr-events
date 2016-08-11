@@ -29,7 +29,7 @@ import org.apache.flink.configuration.Configuration
 import org.apache.flink.streaming.api.scala.{DataStream, SplitStream}
 import org.apache.flink.streaming.api.windowing.assigners.GlobalWindows
 import org.apache.flink.streaming.api.windowing.time.Time
-import org.apache.flink.streaming.api.windowing.windows.{GlobalWindow, TimeWindow}
+import org.apache.flink.streaming.api.windowing.windows.GlobalWindow
 import org.apache.flink.util.Collector
 import org.threeten.extra.Interval
 
@@ -77,8 +77,8 @@ class DigestedStream(parameters: Configuration) {
     val partIds = mutable.Set[String]()
 
     messages.foreach(message => {
+      idBuf ++= message.digestKey
       idBuf ++= message.id.toString
-      idBuf ++= message.digest.map(_.key).getOrElse("default")
       senderIds ++= message.senderIds
       sentInterval = Option(Utilities.mergeIntervals(
         sentInterval.getOrElse(message.sentInterval), message.sentInterval

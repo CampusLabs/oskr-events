@@ -57,8 +57,8 @@ class GroupStream(parameters: Configuration) {
     val partData = ListBuffer[JValue]()
 
     parts.foreach(part => {
-      idBuf ++= part.id
       idBuf ++= part.recipient.id
+      idBuf ++= part.id
       senderIds += part.senderId
       sentAt += part.sentAt
       tags ++= part.tags.getOrElse(Set())
