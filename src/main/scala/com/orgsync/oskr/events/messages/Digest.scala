@@ -21,6 +21,7 @@ import java.util.UUID
 
 import com.orgsync.oskr.events.messages.parts.{ChannelAddress, Recipient, TemplateSet}
 import com.orgsync.oskr.events.streams.deliveries.TemplateCache
+import com.softwaremill.quicklens._
 import org.threeten.extra.Interval
 
 case class Digest(
@@ -34,6 +35,15 @@ case class Digest(
   partIds     : Set[String],
   messages    : List[Message]
 ) extends Deliverable {
+  override def withDeliveryIds: Deliverable = {
+    this.modify(_.channels.each).using((c: ChannelAddress) => {
+      val source = this.id + c.channel.name
+      val id = UUID.nameUUIDFromBytes(source.getBytes)
+
+      c.modify(_.deliveryId).using(Function.const(Option(id)))
+    })
+  }
+
   override def delivery(address: ChannelAddress, cache: TemplateCache): Option[Delivery] = {
     val content = templates.renderDigest(address, messages, cache)
     content.flatMap(c => {

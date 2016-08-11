@@ -57,16 +57,17 @@ object Events {
     val messageStream = ungroupedStream.union(groupedStream)
     val digestedStream = new DigestedStream(configuration).getStream(messageStream)
 
-    val sendStream = DeliveryStream.getStream(digestedStream, eventStream, configuration)
+    val deliveryStream = DeliveryStream.getStream(digestedStream, eventStream, configuration)
       .split(d => List(d.channel.name))
 
-    List(Storage, Web, SMS, Push, Email).map(channel => {
+    List(Storage, Web, SMS, Push, Email).foreach(channel => {
       val topicName = Utilities.channelTopic(configuration, channel)
 
-      sendStream
+      deliveryStream
         .select(channel.name)
-        .map(new SerializeDelivery)
+        .map(new SerializeDelivery).name("serialize_delivery")
         .addSink(new KafkaSink(configuration).sink(topicName))
+        .name(s"${channel.name}_sink")
     })
 
     val jobName = configuration.getString("jobName", "oskr_event_processing")

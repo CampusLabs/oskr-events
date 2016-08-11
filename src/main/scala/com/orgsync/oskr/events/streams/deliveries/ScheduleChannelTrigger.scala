@@ -18,7 +18,7 @@ package com.orgsync.oskr.events.streams.deliveries
 
 import java.util.UUID
 
-import com.orgsync.oskr.events.messages.{Digest, Message}
+import com.orgsync.oskr.events.messages.Deliverable
 import org.apache.flink.api.common.state.ValueStateDescriptor
 import org.apache.flink.streaming.api.datastream.CoGroupedStreams.TaggedUnion
 import org.apache.flink.streaming.api.windowing.triggers.{Trigger, TriggerResult}
@@ -26,7 +26,7 @@ import org.apache.flink.streaming.api.windowing.triggers.Trigger.TriggerContext
 import org.apache.flink.streaming.api.windowing.windows.Window
 
 class ScheduleChannelTrigger[W <: Window]
-  extends Trigger[TaggedUnion[Either[Message, Digest], UUID], W] {
+  extends Trigger[TaggedUnion[Deliverable, UUID], W] {
 
   private val countDescriptor = new ValueStateDescriptor(
     "triggerCount", classOf[Int], 0
@@ -41,7 +41,7 @@ class ScheduleChannelTrigger[W <: Window]
   )
 
   override def onElement(
-    t             : TaggedUnion[Either[Message, Digest], UUID],
+    t             : TaggedUnion[Deliverable, UUID],
     timestamp     : Long,
     window        : W,
     triggerContext: TriggerContext
@@ -60,8 +60,8 @@ class ScheduleChannelTrigger[W <: Window]
       maybeDeliverable.foreach {
         s => {
           initialized.update(true)
-          triggerCount.update(s.merge.channels.length)
-          s.merge.channels.foreach {
+          triggerCount.update(s.channels.length)
+          s.channels.foreach {
             c =>
               triggerContext.registerProcessingTimeTimer(now + c.delay.toMillis)
           }
