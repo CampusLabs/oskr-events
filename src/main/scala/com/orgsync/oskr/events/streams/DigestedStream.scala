@@ -108,6 +108,7 @@ class DigestedStream(parameters: Configuration) {
       .allowedLateness(allowedLateness)
       .trigger(new ScheduleDigestTrigger)
       .apply(reduceDigest)
+      .uid("digested messages")
   }
 
   def getStream(messageStream: DataStream[Message]): DataStream[Either[Message, Digest]] = {
