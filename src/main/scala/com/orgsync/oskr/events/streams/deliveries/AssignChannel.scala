@@ -19,7 +19,7 @@ package com.orgsync.oskr.events.streams.deliveries
 import java.lang.Iterable
 import java.util.UUID
 
-import com.orgsync.oskr.events.messages.{Deliverable, Delivery}
+import com.orgsync.oskr.events.messages.{Deliverable, Delivery, Digest, Message}
 import org.apache.flink.api.common.functions.RichCoGroupFunction
 import org.apache.flink.api.common.state.{ValueState, ValueStateDescriptor}
 import org.apache.flink.configuration.Configuration
@@ -27,19 +27,19 @@ import org.apache.flink.util.Collector
 
 import scala.collection.JavaConverters._
 class AssignChannel
-  extends RichCoGroupFunction[Deliverable, UUID, Delivery] {
+  extends RichCoGroupFunction[Either[Message, Digest], UUID, Delivery] {
 
   var index: ValueState[Int] = _
   var cache: TemplateCache = _
 
   override def coGroup(
-    deliverables  : Iterable[Deliverable],
+    deliverables  : Iterable[Either[Message, Digest]],
     deliverableIds: Iterable[UUID],
     out           : Collector[Delivery]
   ): Unit = deliverables.asScala.take(1).foreach {
     deliverable =>
       val currentIndex = index.value
-      val channels = deliverable.channels
+      val channels = deliverable.merge.channels
       val channelCount = channels.length
       val acked = deliverableIds.asScala.exists(id => true)
 
@@ -52,7 +52,7 @@ class AssignChannel
         0 until triggers foreach {
           i =>
             val channelAddress = channels(currentIndex + i)
-            deliverable.delivery(channelAddress, cache).foreach(out.collect)
+            deliverable.merge.delivery(channelAddress, cache).foreach(out.collect)
         }
 
         index.update(currentIndex + triggers)

@@ -25,6 +25,5 @@ trait Deliverable {
   val id: UUID
   val recipient: Recipient
   val channels: List[ChannelAddress]
-  def withDeliveryIds: Deliverable
   def delivery(address: ChannelAddress, cache: TemplateCache): Option[Delivery]
 }

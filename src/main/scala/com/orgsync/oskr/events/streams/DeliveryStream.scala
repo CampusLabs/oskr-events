@@ -17,10 +17,12 @@
 package com.orgsync.oskr.events.streams
 
 import java.time.Duration
+import java.util.UUID
 
 import com.orgsync.oskr.events.messages.events.Acknowledgement
 import com.orgsync.oskr.events.messages._
 import com.orgsync.oskr.events.streams.deliveries.{AssignChannel, ScheduleChannelTrigger}
+import com.softwaremill.quicklens._
 import org.apache.flink.api.scala._
 import org.apache.flink.configuration.Configuration
 import org.apache.flink.streaming.api.scala.DataStream
@@ -35,7 +37,19 @@ object DeliveryStream {
     events       : DataStream[Event],
     configuration: Configuration
   ): DataStream[Delivery] = {
-    val deliverablesWithIds = deliverables.map(_.merge.withDeliveryIds)
+    val deliverablesWithIds: DataStream[Either[Message, Digest]] =
+      deliverables.map(deliverable => {
+        val channels = deliverable.merge.channels.map(c => {
+          val source = deliverable.merge.id + c.channel.name
+          val id = UUID.nameUUIDFromBytes(source.getBytes)
+          c.modify(_.deliveryId).setTo(Option(id))
+        })
+
+        deliverable match {
+          case Left(m) => Left(m.modify(_.channels).setTo(channels))
+          case Right(d) => Right(d.modify(_.channels).setTo(channels))
+        }
+      })
 
     val ackEvents = events.filter(_.action == Acknowledgement)
 
@@ -48,6 +62,7 @@ object DeliveryStream {
     val deliverySlideTime = Time.milliseconds(maxDeliveryTime.toMilliseconds / 2)
 
     val ackedDeliverableIds = deliverablesWithIds
+      .map(_.merge)
       .flatMap(d => d.channels.map(c => (d.id, c.deliveryId)))
       .join(ackEvents)
       .where(_._2).equalTo(e => Option(e.deliveryId))
@@ -58,7 +73,7 @@ object DeliveryStream {
 
     deliverablesWithIds
       .coGroup(ackedDeliverableIds)
-      .where(_.id).equalTo(id => id)
+      .where(_.merge.id).equalTo(id => id)
       .window(GlobalWindows.create)
       .trigger(new ScheduleChannelTrigger)
       .apply(new AssignChannel).name("delivery_window")
