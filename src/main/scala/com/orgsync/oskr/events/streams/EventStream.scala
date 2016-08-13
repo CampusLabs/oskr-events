@@ -52,9 +52,9 @@ object EventStream {
       )
 
     env
-      .addSource(eventSource)
-      .uid("event source")
-      .flatMap(eventParser(_))
-      .assignTimestampsAndWatermarks(watermarkAssigner)
+      .addSource(eventSource).name("event_source")
+      .uid("event_source")
+      .flatMap(eventParser(_)).name("parse_event")
+      .assignTimestampsAndWatermarks(watermarkAssigner).name("assign_event_timestamp")
   }
 }

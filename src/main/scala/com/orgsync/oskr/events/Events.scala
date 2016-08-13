@@ -52,7 +52,7 @@ object Events {
 
     val ungroupedStream = partStream
       .select(PartStream.Ungrouped)
-      .map(_.toMessage)
+      .map(_.toMessage).name("to_message")
 
     val messageStream = ungroupedStream.union(groupedStream)
     val digestedStream = new DigestedStream(configuration).getStream(messageStream)

@@ -55,14 +55,15 @@ class DigestedStream(parameters: Configuration) {
           .modify(_.digest).setTo(None)
 
       messages
-    }).split(d => d.digest match {
+    }).name("split_digest")
+      .split(d => d.digest match {
       case Some(_) => List("digests")
       case None => List("immediate")
     })
   }
 
   private val reduceDigest = (
-    key            : (String, String),
+    key: (String, String),
     window         : GlobalWindow,
     messageIterable: Iterable[Message],
     out            : Collector[Digest]
@@ -107,8 +108,8 @@ class DigestedStream(parameters: Configuration) {
       .window(GlobalWindows.create())
       .allowedLateness(allowedLateness)
       .trigger(new ScheduleDigestTrigger)
-      .apply(reduceDigest)
-      .uid("digested messages")
+      .apply(reduceDigest).name("digest_window")
+      .uid("digested_messages")
   }
 
   def getStream(messageStream: DataStream[Message]): DataStream[Either[Message, Digest]] = {
@@ -116,9 +117,11 @@ class DigestedStream(parameters: Configuration) {
 
     val immediates: DataStream[Either[Message, Digest]] = splitStream
       .select("immediate").map(Left(_))
+    immediates.name("wrap_message")
 
     val digests: DataStream[Either[Message, Digest]] = digestStream(splitStream.select("digests"))
       .map(Right(_))
+    digests.name("wrap_digest")
 
     immediates.union(digests)
   }

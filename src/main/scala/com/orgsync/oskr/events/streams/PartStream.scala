@@ -61,16 +61,16 @@ object PartStream {
     val keyFunction = (s: Part) => (s.id, s.recipient.id)
 
     env
-      .addSource(partSource)
-      .uid("part source")
-      .flatMap(new ParsePart(configuration))
-      .assignTimestampsAndWatermarks(watermarkAssigner)
+      .addSource(partSource).name("part_source")
+      .uid("part_source")
+      .flatMap(new ParsePart(configuration)).name("parse_part")
+      .assignTimestampsAndWatermarks(watermarkAssigner).name("assign_part_timestamp")
       .keyBy(keyFunction)
       .filter(new DedupeFilterFunction[Part, (String, String)](
         keyFunction, dedupeCacheTime
-      ))
-      .uid("deduplicate parts")
-      .map(s => s.modify(_.channels).using(_.sortBy(_.delay)))
+      )).name("deduplicate_parts")
+      .uid("deduplicate_parts")
+      .map(s => s.modify(_.channels).using(_.sortBy(_.delay))).name("sort_channels")
       .split(s =>
         s.groupingKey match {
           case Some(_) => List(Grouped)

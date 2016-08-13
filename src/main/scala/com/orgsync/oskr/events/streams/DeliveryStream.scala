@@ -37,7 +37,7 @@ object DeliveryStream {
     events       : DataStream[Event],
     configuration: Configuration
   ): DataStream[Delivery] = {
-    val deliverablesWithIds: DataStream[Either[Message, Digest]] =
+    val deliverablesWithIds =
       deliverables.map(deliverable => {
         val channels = deliverable.merge.channels.map(c => {
           val source = deliverable.merge.id + c.channel.name
@@ -49,9 +49,11 @@ object DeliveryStream {
           case Left(m) => Left(m.modify(_.channels).setTo(channels))
           case Right(d) => Right(d.modify(_.channels).setTo(channels))
         }
-      })
+      }).asInstanceOf[DataStream[Either[Message, Digest]]]
+        .name("add_delivery_ids")
 
-    val ackEvents = events.filter(_.action == Acknowledgement)
+    val ackEvents = events
+      .filter(_.action == Acknowledgement).name("filter_acks")
 
     val maxDeliveryTime = Time.milliseconds(
       Duration
@@ -62,14 +64,14 @@ object DeliveryStream {
     val deliverySlideTime = Time.milliseconds(maxDeliveryTime.toMilliseconds / 2)
 
     val ackedDeliverableIds = deliverablesWithIds
-      .map(_.merge)
-      .flatMap(d => d.channels.map(c => (d.id, c.deliveryId)))
+      .map(_.merge).name("to_deliverable")
+      .flatMap(d => d.channels.map(c => (d.id, c.deliveryId))).name("delivery_ids")
       .join(ackEvents)
       .where(_._2).equalTo(e => Option(e.deliveryId))
       .window(SlidingProcessingTimeWindows.of(maxDeliveryTime, deliverySlideTime))
       .trigger(CountTrigger.of[TimeWindow](1))
-      .apply((t, event) => t._1)
-      .uid("acked message ids")
+      .apply((t, event) => t._1).name("acked_deliverable_ids")
+      .uid("acked_deliverable_ids")
 
     deliverablesWithIds
       .coGroup(ackedDeliverableIds)

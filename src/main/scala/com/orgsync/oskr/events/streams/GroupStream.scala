@@ -84,7 +84,7 @@ class GroupStream(parameters: Configuration) {
       .keyBy(p => (p.recipient.id, p.groupingKey.getOrElse("default")))
       .window(new PartGroupingWindows(groupingGap))
       .allowedLateness(allowedLateness)
-      .apply(reducePartsWindow)
-      .uid("grouped messages")
+      .apply(reducePartsWindow).name("group_window")
+      .uid("grouped_messages")
   }
 }
