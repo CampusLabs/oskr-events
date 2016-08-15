@@ -16,6 +16,7 @@
 
 package com.orgsync.oskr.events.messages
 
+import java.time.Instant
 import java.util.UUID
 
 import com.orgsync.oskr.events.messages.parts.{ChannelAddress, Recipient}
@@ -23,7 +24,13 @@ import com.orgsync.oskr.events.streams.deliveries.TemplateCache
 
 trait Deliverable {
   val id: UUID
+  val emittedAt: Instant
   val recipient: Recipient
   val channels: List[ChannelAddress]
-  def delivery(address: ChannelAddress, cache: TemplateCache): Option[Delivery]
+
+  def delivery(
+    address: ChannelAddress,
+    at     : Instant,
+    cache  : TemplateCache
+  ): Option[Delivery]
 }

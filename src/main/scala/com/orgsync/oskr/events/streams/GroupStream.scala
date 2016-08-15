@@ -47,6 +47,7 @@ class GroupStream(parameters: Configuration) {
     out         : Collector[Message]
   ) => {
     val parts = partIterable.toList.sortBy(_.sentAt)
+    val emittedAt = Instant.ofEpochMilli(window.getEnd)
 
     val idBuf = new StringBuilder
     val senderIds = mutable.Set[String]()
@@ -72,9 +73,9 @@ class GroupStream(parameters: Configuration) {
       val sentInterval = Interval.of(sentAt.firstKey, sentAt.lastKey)
 
       out.collect(Message(
-        id, senderIds.toSet, part.recipient, part.channels, sentInterval,
-        tags.toSet, part.digest, part.templates, partIds.toSet, JArray
-        (partData.toList)
+        id, emittedAt, senderIds.toSet, part.recipient, part.channels,
+        sentInterval, tags.toSet, part.digest, part.templates,
+        partIds.toSet, JArray(partData.toList)
       ))
     })
   }

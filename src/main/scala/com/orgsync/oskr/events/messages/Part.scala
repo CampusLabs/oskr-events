@@ -45,7 +45,7 @@ final case class Part(
     val messageTags = tags.getOrElse(Set[String]())
 
     Message(
-      messageId, Set(senderId), recipient, channels, sent, messageTags,
+      messageId, sentAt, Set(senderId), recipient, channels, sent, messageTags,
       digest, templates, Set(id), JArray(List(data))
     )
   }

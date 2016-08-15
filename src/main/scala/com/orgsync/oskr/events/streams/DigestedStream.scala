@@ -69,6 +69,11 @@ class DigestedStream(parameters: Configuration) {
     out            : Collector[Digest]
   ) => {
     val messages = messageIterable.toList.sortBy(_.sentInterval.getEnd)
+    val emittedAt = messages
+      .lastOption
+      .flatMap(_.digest)
+      .map(_.at)
+      .getOrElse(Instant.now)
 
     val idBuf = new StringBuilder
     val senderIds = mutable.Set[String]()
@@ -93,8 +98,8 @@ class DigestedStream(parameters: Configuration) {
     val interval = sentInterval.getOrElse(Interval.of(Instant.EPOCH, Duration.ZERO))
 
     lastMessage.foreach(message => out.collect(Digest(
-      id, senderIds.toSet, message.recipient, message.channels, interval,
-      tags.toSet, message.templates, partIds.toSet, messages
+      id, emittedAt, senderIds.toSet, message.recipient, message.channels,
+      interval, tags.toSet, message.templates, partIds.toSet, messages
     )))
   }
 

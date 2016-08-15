@@ -25,6 +25,7 @@ import org.threeten.extra.Interval
 
 case class Digest(
   id          : UUID,
+  emittedAt   : Instant,
   senderIds   : Set[String],
   recipient   : Recipient,
   channels    : List[ChannelAddress],
@@ -34,15 +35,18 @@ case class Digest(
   partIds     : Set[String],
   messages    : List[Message]
 ) extends Deliverable {
-  override def delivery(address: ChannelAddress, cache: TemplateCache): Option[Delivery] = {
+  override def delivery(
+    address: ChannelAddress,
+    at     : Instant,
+    cache  : TemplateCache
+  ): Option[Delivery] = {
     val content = templates.renderDigest(address, messages, cache)
     content.flatMap(c => {
       val deliveryId = address.deliveryId
-      val deliveredAt = Instant.now()
 
       deliveryId.map(id => Delivery(
         id, address.channel, senderIds, sentInterval, recipient.id,
-        deliveredAt, tags, partIds, c
+        at, Instant.now, tags, partIds, c
       ))
     })
   }

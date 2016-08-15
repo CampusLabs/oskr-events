@@ -48,11 +48,12 @@ class AssignChannel
       else if (currentIndex < channelCount) {
         val delay = channels(currentIndex).delay
         val triggers = channels.count(_.delay == delay)
+        val at = deliverable.merge.emittedAt.plusMillis(delay.toMillis)
 
         0 until triggers foreach {
           i =>
             val channelAddress = channels(currentIndex + i)
-            deliverable.merge.delivery(channelAddress, cache).foreach(out.collect)
+            deliverable.merge.delivery(channelAddress, at, cache).foreach(out.collect)
         }
 
         index.update(currentIndex + triggers)

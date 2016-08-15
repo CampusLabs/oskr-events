@@ -30,6 +30,7 @@ case class Delivery(
   sentInterval: Interval,
   recipientId : String,
   scheduledAt : Instant,
+  processedAt : Instant,
   tags        : Set[String],
   partIds     : Set[String],
   content     : JValue
