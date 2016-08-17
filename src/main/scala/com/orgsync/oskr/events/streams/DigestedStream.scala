@@ -36,23 +36,6 @@ import org.threeten.extra.Interval
 import scala.collection.mutable
 
 class DigestedStream(parameters: Configuration) {
-  private def getDeliverablesWithIds(
-    deliverables: DataStream[Either[Message, Digest]]
-  ): DataStream[Either[Message, Digest]] = {
-    deliverables.map(deliverable => {
-      val channels = deliverable.merge.channels.map(c => {
-        val source = deliverable.merge.id + c.channel.name
-        val id = UUID.nameUUIDFromBytes(source.getBytes)
-        c.modify(_.deliveryId).setTo(Option(id))
-      })
-
-      deliverable match {
-        case Left(m) => Left(m.modify(_.channels).setTo(channels))
-        case Right(d) => Right(d.modify(_.channels).setTo(channels))
-      }
-    }: Either[Message, Digest]).name("add_delivery_ids")
-  }
-
   private def extractDigests(messageStream: DataStream[Message]): SplitStream[Message] = {
     messageStream.flatMap(message => {
       val digestChannels = message.digest
@@ -145,6 +128,6 @@ class DigestedStream(parameters: Configuration) {
       .map(Right(_))
     digests.name("wrap_digest")
 
-    getDeliverablesWithIds(immediates.union(digests))
+    immediates.union(digests)
   }
 }

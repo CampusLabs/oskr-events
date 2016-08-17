@@ -31,7 +31,6 @@ A Flink-based service for more humane notifications. Work in progress.
 | `KAFKA_SMS_DELIVERY_TOPIC`     | `Communications.Deliveries.Sms`     | Kafka topic for sms delivery messages                                                           |
 | `KAFKA_STORAGE_DELIVERY_TOPIC` | `Communications.Deliveries.Storage` | Kafka topic for delivery storage messages                                                       |
 | `KAFKA_WEB_DELIVERY_TOPIC`     | `Communications.Deliveries.Web`     | Kafka topic for web delivery messages                                                           |
-| `MAX_DELIVERY_TIME`            | `PT168H`                            | maximum time to wait for delivery to arrive (ISO 8601 duration)                                 |
 | `MAX_EVENT_LAG`                | `PT5S`                              | for `periodic` strategy, maximum lag before an event is considered late (ISO 8601 duration)     |
 | `MAX_EVENT_OUT_OF_ORDER`       | `PT5S`                              | for `bounded` strategy, maximum amount of time events can be out of order (ISO 8601 duration)   |
 | `MAX_PART_LAG`                 | `PT5S`                              | for `periodic` strategy, maximum lag before a message is considered late (ISO 8601 duration)    |

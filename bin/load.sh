@@ -55,7 +55,6 @@ function run() {
   args[kafkaSmsDeliveryTopic]=$KAFKA_SMS_DELIVERY_TOPIC
   args[kafkaStorageDeliveryTopic]=$KAFKA_STORAGE_DELIVERY_TOPIC
   args[kafkaWebDeliveryTopic]=$KAFKA_WEB_DELIVERY_TOPIC
-  args[maxDeliveryTime]=$MAX_DELIVERY_TIME
   args[maxEventLag]=$MAX_EVENT_LAG
   args[maxEventOutOfOrder]=$MAX_EVENT_OUT_OF_ORDER
   args[maxPartLag]=$MAX_PART_LAG

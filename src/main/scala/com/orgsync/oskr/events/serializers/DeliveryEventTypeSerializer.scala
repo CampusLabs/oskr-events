@@ -16,14 +16,14 @@
 
 package com.orgsync.oskr.events.serializers
 
-import com.orgsync.oskr.events.messages.events.{Acknowledgement, Delivery, EventType, Failure}
+import com.orgsync.oskr.events.messages.delivery_events.{Acknowledgement, Delivery, DeliveryEventType, Failure}
 import org.json4s.CustomSerializer
 import org.json4s.JsonAST.JString
 
-object EventTypeSerializer extends CustomSerializer[EventType](f => ( {
+object DeliveryEventTypeSerializer extends CustomSerializer[DeliveryEventType](f => ( {
   case JString(Delivery.name) => Delivery
   case JString(Acknowledgement.name) => Acknowledgement
   case JString(Failure.name) => Failure
 }, {
-  case eventType: EventType => JString(eventType.name)
+  case eventType: DeliveryEventType => JString(eventType.name)
 }))

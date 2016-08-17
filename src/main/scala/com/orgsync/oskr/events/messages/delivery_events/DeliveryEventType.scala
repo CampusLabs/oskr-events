@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-package com.orgsync.oskr.events.messages.events
+package com.orgsync.oskr.events.messages.delivery_events
 
-sealed trait EventType {
+sealed trait DeliveryEventType {
   def name: String
 }
 
-case object Delivery extends EventType {
+case object Delivery extends DeliveryEventType {
   val name = "delivery"
 }
 
-case object Acknowledgement extends EventType {
+case object Acknowledgement extends DeliveryEventType {
   val name = "acknowledgement"
 }
 
-case object Failure extends EventType {
+case object Failure extends DeliveryEventType {
   val name = "failure"
 }

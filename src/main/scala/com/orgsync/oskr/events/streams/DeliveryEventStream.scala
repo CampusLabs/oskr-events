@@ -19,8 +19,8 @@ package com.orgsync.oskr.events.streams
 import java.time.Duration
 
 import com.orgsync.oskr.events.Utilities
-import com.orgsync.oskr.events.messages.Event
-import com.orgsync.oskr.events.parsers.EventParser
+import com.orgsync.oskr.events.messages.DeliveryEvent
+import com.orgsync.oskr.events.parsers.DeliveryEventParser
 import com.orgsync.oskr.events.watermarks.{BoundedEventWatermarkAssigner, PeriodicEventWatermarkAssigner}
 import org.apache.flink.api.scala._
 import org.apache.flink.configuration.Configuration
@@ -28,13 +28,13 @@ import org.apache.flink.streaming.api.scala.{DataStream, StreamExecutionEnvironm
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer09
 import org.apache.flink.streaming.util.serialization.SimpleStringSchema
 
-object EventStream {
-  private val eventParser = EventParser.parseEvent _
+object DeliveryEventStream {
+  private val eventParser = DeliveryEventParser.parseEvent _
 
   def getStream(
     env          : StreamExecutionEnvironment,
     configuration: Configuration
-  ): DataStream[Event] = {
+  ): DataStream[DeliveryEvent] = {
     val eventSource = new FlinkKafkaConsumer09[String](
       configuration.getString("kafkaDeliveryEventTopic", "Communications.Events.Deliveries"),
       new SimpleStringSchema,

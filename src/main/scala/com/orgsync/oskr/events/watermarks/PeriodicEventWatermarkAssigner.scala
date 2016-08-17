@@ -16,14 +16,14 @@
 
 package com.orgsync.oskr.events.watermarks
 
-import com.orgsync.oskr.events.messages.Event
+import com.orgsync.oskr.events.messages.DeliveryEvent
 import org.apache.flink.streaming.api.functions.AssignerWithPeriodicWatermarks
 import org.apache.flink.streaming.api.watermark.Watermark
 
 class PeriodicEventWatermarkAssigner(maxTimeLag: Long)
-  extends AssignerWithPeriodicWatermarks[Event] {
+  extends AssignerWithPeriodicWatermarks[DeliveryEvent] {
 
-  override def extractTimestamp(s: Event, previousTimestamp: Long) = {
+  override def extractTimestamp(s: DeliveryEvent, previousTimestamp: Long) = {
     s.at.toEpochMilli
   }
 

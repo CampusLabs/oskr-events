@@ -25,8 +25,6 @@ sealed trait ChannelAddress {
   def address: String
 
   def delay: Duration
-
-  def deliveryId: Option[UUID]
 }
 
 final case class StorageChannelAddress(

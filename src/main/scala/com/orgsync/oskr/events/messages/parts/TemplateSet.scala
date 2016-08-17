@@ -16,6 +16,8 @@
 
 package com.orgsync.oskr.events.messages.parts
 
+import java.util.UUID
+
 import com.orgsync.oskr.events.ChannelTemplateMap
 import com.orgsync.oskr.events.messages.Message
 import com.orgsync.oskr.events.streams.deliveries.TemplateCache
@@ -37,9 +39,10 @@ final case class TemplateSet(
   )
 
   def renderDigest(
-    address : ChannelAddress,
-    messages: List[Message],
-    cache   : TemplateCache
+    address      : ChannelAddress,
+    deliverableId: UUID,
+    messages     : List[Message],
+    cache        : TemplateCache
   ): Option[JValue] = {
     val data = messages.flatMap(message => renderBaseTemplate(
       digestBase, address, message, message.partData, cache
@@ -48,7 +51,8 @@ final case class TemplateSet(
     val partIds = messages.flatMap(_.partIds)
 
     messages.headOption.flatMap(message => renderLayoutTemplate(
-      digestLayout, address, message.recipient, JArray(data), partIds, cache
+      digestLayout, address, deliverableId, message.recipient, JArray(data),
+      partIds, cache
     ))
   }
 
@@ -64,41 +68,41 @@ final case class TemplateSet(
     val tags = JArray(message.tags.map(JString).toList)
 
     val value = JObject(List(
-      ("recipient",    message.recipient.data),
-      ("data",         data),
-      ("address",      JString(address.address)),
-      ("senderIds",    JArray(message.senderIds.map(JString).toList)),
-      ("messageId",    JString(message.id.toString)),
-      ("recipientId",  JString(message.recipient.id)),
-      ("channel",      JString(address.channel.name)),
+      ("recipient", message.recipient.data),
+      ("data", data),
+      ("address", JString(address.address)),
+      ("senderIds", JArray(message.senderIds.map(JString).toList)),
+      ("deliverableId", JString(message.id.toString)),
+      ("recipientId", JString(message.recipient.id)),
+      ("channel", JString(address.channel.name)),
       ("sentInterval", JString(message.sentInterval.toString)),
-      ("tags",         tags),
-      ("partIds",      partIDs),
-      ("deliveryId",   JString(address.deliveryId.get.toString))
+      ("tags", tags),
+      ("partIds", partIDs)
     ))
 
     template.flatMap(t => Try(renderTemplate(t, value, cache)).toOption)
   }
 
   private def renderLayoutTemplate(
-    templates: ChannelTemplateMap,
-    address  : ChannelAddress,
-    recipient: Recipient,
-    data     : JArray,
-    partIds  : List[String],
-    cache    : TemplateCache
+    templates    : ChannelTemplateMap,
+    address      : ChannelAddress,
+    deliverableId: UUID,
+    recipient    : Recipient,
+    data         : JArray,
+    partIds      : List[String],
+    cache        : TemplateCache
 
   ): Option[JValue] = {
     val template = templates.get(address.channel)
 
     val value = JObject(List(
-      ("recipient",   recipient.data),
-      ("data",        data),
-      ("address",     JString(address.address)),
+      ("recipient", recipient.data),
+      ("data", data),
+      ("address", JString(address.address)),
+      ("deliverableId", JString(deliverableId.toString)),
       ("recipientId", JString(recipient.id)),
-      ("channel",     JString(address.channel.name)),
-      ("partIds",     JArray(partIds.map(JString))),
-      ("deliveryId",  JString(address.deliveryId.get.toString))
+      ("channel", JString(address.channel.name)),
+      ("partIds", JArray(partIds.map(JString)))
     ))
 
     template.flatMap(t => Try(renderTemplate(t, value, cache)).toOption)

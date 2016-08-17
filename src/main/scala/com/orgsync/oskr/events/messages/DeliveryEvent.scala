@@ -19,13 +19,15 @@ package com.orgsync.oskr.events.messages
 import java.time.Instant
 import java.util.UUID
 
-import com.orgsync.oskr.events.messages.events.EventType
+import com.orgsync.oskr.events.messages.delivery_events.DeliveryEventType
+import com.orgsync.oskr.events.messages.parts.ChannelType
 import org.json4s.JsonAST.JValue
 
-case class Event(
-  deliveryId: UUID,
-  action    : EventType,
-  at        : Instant,
-  data      : Option[JValue]
+case class DeliveryEvent(
+  deliverableId: UUID,
+  recipientId  : String,
+  channel      : ChannelType,
+  action       : DeliveryEventType,
+  at           : Instant,
+  data         : Option[JValue]
 )
-

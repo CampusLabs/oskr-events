@@ -40,14 +40,12 @@ case class Digest(
     at     : Instant,
     cache  : TemplateCache
   ): Option[Delivery] = {
-    val content = templates.renderDigest(address, messages, cache)
-    content.flatMap(c => {
-      val deliveryIdOption = address.deliveryId
-
-      deliveryIdOption.map(deliveryId => Delivery(
-        deliveryId, id, address.channel, senderIds, sentInterval, recipient.id,
+    val content = templates.renderDigest(address, id, messages, cache)
+    content.map(c => {
+      Delivery(
+        id, address.channel, senderIds, sentInterval, recipient.id,
         at, Instant.now, tags, partIds, c
-      ))
+      )
     })
   }
 }

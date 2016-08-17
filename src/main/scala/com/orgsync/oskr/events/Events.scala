@@ -45,7 +45,7 @@ object Events {
     env.setStateBackend(backend)
 
     val partStream = PartStream.getStream(env, configuration)
-    val eventStream = EventStream.getStream(env, configuration)
+    val eventStream = DeliveryEventStream.getStream(env, configuration)
 
     val groupedStream = new GroupStream(configuration)
       .getStream(partStream.select(PartStream.Grouped))
@@ -58,7 +58,7 @@ object Events {
     val digestedStream = new DigestedStream(configuration).getStream(messageStream)
 
     val deliverableEventStream = DeliverableEventStream.getStream(
-      digestedStream, eventStream, configuration
+      digestedStream, eventStream
     )
 
     val unreadCountStream = UnreadCountStream.getStream(

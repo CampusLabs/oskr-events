@@ -16,11 +16,11 @@
 
 package com.orgsync.oskr.events.watermarks
 
-import com.orgsync.oskr.events.messages.Event
+import com.orgsync.oskr.events.messages.DeliveryEvent
 import org.apache.flink.streaming.api.functions.timestamps.BoundedOutOfOrdernessTimestampExtractor
 import org.apache.flink.streaming.api.windowing.time.Time
 
 class BoundedEventWatermarkAssigner(bound: Long)
-  extends BoundedOutOfOrdernessTimestampExtractor[Event](Time.milliseconds(bound)) {
-  override def extractTimestamp(s: Event) = s.at.toEpochMilli
+  extends BoundedOutOfOrdernessTimestampExtractor[DeliveryEvent](Time.milliseconds(bound)) {
+  override def extractTimestamp(s: DeliveryEvent) = s.at.toEpochMilli
 }

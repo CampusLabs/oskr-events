@@ -16,21 +16,25 @@
 
 package com.orgsync.oskr.events.parsers
 
-import com.orgsync.oskr.events.messages.Event
-import com.orgsync.oskr.events.serializers.{ChannelTypeSerializer, EventTypeSerializer, InstantSerializer}
+import com.orgsync.oskr.events.messages.DeliveryEvent
+import com.orgsync.oskr.events.serializers.{ChannelTypeSerializer, DeliveryEventTypeSerializer, InstantSerializer}
 import org.json4s.DefaultFormats
 import org.json4s.ext.UUIDSerializer
 import org.json4s.jackson.JsonMethods._
 
 import scala.util.{Failure, Success, Try}
 
-object EventParser {
-  implicit val formats = DefaultFormats + InstantSerializer +
-    ChannelTypeSerializer + EventTypeSerializer + UUIDSerializer
+object DeliveryEventParser {
+  val notNullFormats = new DefaultFormats {
+    override val allowNull = false
+  }
 
-  def parseEvent(json: String): Option[Event] = {
+  implicit val formats = notNullFormats + InstantSerializer +
+    ChannelTypeSerializer + DeliveryEventTypeSerializer + UUIDSerializer
+
+  def parseEvent(json: String): Option[DeliveryEvent] = {
     val parsed = Try {
-      parse(json).extract[Event]
+      parse(json).extract[DeliveryEvent]
     }
 
     parsed match {

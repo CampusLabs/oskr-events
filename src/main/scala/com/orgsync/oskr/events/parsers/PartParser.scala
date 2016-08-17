@@ -27,7 +27,11 @@ import scala.util.{Failure, Success, Try}
 class PartParser(parameters: Configuration) {
   val channelAddressSerializer = new ChannelAddressSerializer(parameters)
 
-  implicit val formats = DefaultFormats + InstantSerializer +
+  val notNullFormats = new DefaultFormats {
+    override val allowNull = false
+  }
+
+  implicit val formats = notNullFormats + InstantSerializer +
     DurationSerializer + ChannelTypeSerializer + channelAddressSerializer +
     ChannelTypeKeySerializer
 
