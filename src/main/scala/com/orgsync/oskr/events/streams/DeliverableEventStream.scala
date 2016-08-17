@@ -52,7 +52,7 @@ object DeliverableEventStream {
 
     val ackIds = events
       .filter(_.action == Acknowledgement).name("filter_acks")
-      .map(_.deliveryId)
+      .map(_.deliveryId).name("delivery_id")
 
     deliverables
       .flatMap(d => d.merge.channels.flatMap(c =>

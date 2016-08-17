@@ -52,7 +52,7 @@ object DeliveryStream {
     val deliverablesWithIds = getDeliverablesWithIds(deliverables)
     val readEventIds = deliverableEvents
       .select(DeliverableEventStream.ReadEvents)
-      .map(_.merge.id)
+      .map(_.merge.id).name("deliverable_id")
 
     deliverablesWithIds
       .coGroup(readEventIds)
