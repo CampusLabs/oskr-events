@@ -48,7 +48,7 @@ function run() {
   args[jobName]=$JOB_NAME
   args[kafkaBootstrap]=$KAFKA_BOOTSTRAP
   args[kafkaEmailDeliveryTopic]=$KAFKA_EMAIL_DELIVERY_TOPIC
-  args[kafkaEventTopic]=$KAFKA_EVENT_TOPIC
+  args[kafkaDeliveryEventTopic]=$KAFKA_DELIVERY_EVENT_TOPIC
   args[kafkaGroup]=$KAFKA_GROUP
   args[kafkaPartTopic]=$KAFKA_PART_TOPIC
   args[kafkaPushDeliveryTopic]=$KAFKA_PUSH_DELIVERY_TOPIC

@@ -36,7 +36,7 @@ object EventStream {
     configuration: Configuration
   ): DataStream[Event] = {
     val eventSource = new FlinkKafkaConsumer09[String](
-      configuration.getString("kafkaEventTopic", "Communications.Events"),
+      configuration.getString("kafkaDeliveryEventTopic", "Communications.Events.Deliveries"),
       new SimpleStringSchema,
       Utilities.kafkaConsumerProperties(configuration)
     )

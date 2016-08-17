@@ -23,14 +23,14 @@ A Flink-based service for more humane notifications. Work in progress.
 | `GROUPING_GAP`                 | `PT5M`                              | default grouped message session gap (ISO 8601 duration)                                         |
 | `JOB_NAME`                     | `oskr event processing`             | Flink job name                                                                                  |
 | `KAFKA_BOOTSTRAP`              | `kafka:9092`                        | Kafka broker bootstrap                                                                          |
-| `KAFKA_EMAIL_DELIVERY_TOPIC`   | `Communications.Deliveries.Email`   | Kafka topic for email delivery events                                                           |
-| `KAFKA_EVENT_TOPIC`            | `Communications.Events`             | Kafka topic for incoming events                                                                 |
+| `KAFKA_EMAIL_DELIVERY_TOPIC`   | `Communications.Deliveries.Email`   | Kafka topic for email delivery messages                                                         |
+| `KAFKA_DELIVERY_EVENT_TOPIC`   | `Communications.Events.Deliveries`  | Kafka topic for incoming delivery events                                                        |
 | `KAFKA_GROUP`                  | `oskr-events`                       | Kafka consumer group                                                                            |
 | `KAFKA_PART_TOPIC`             | `Communications.MessageParts`       | Kafka topic for incoming messages                                                               |
-| `KAFKA_PUSH_DELIVERY_TOPIC`    | `Communications.Deliveries.Push`    | Kafka topic for push delivery events                                                            |
-| `KAFKA_SMS_DELIVERY_TOPIC`     | `Communications.Deliveries.Sms`     | Kafka topic for sms delivery events                                                             |
-| `KAFKA_STORAGE_DELIVERY_TOPIC` | `Communications.Deliveries.Storage` | Kafka topic for delivery storage                                                                |
-| `KAFKA_WEB_DELIVERY_TOPIC`     | `Communications.Deliveries.Web`     | Kafka topic for web delivery events                                                             |
+| `KAFKA_PUSH_DELIVERY_TOPIC`    | `Communications.Deliveries.Push`    | Kafka topic for push delivery messages                                                          |
+| `KAFKA_SMS_DELIVERY_TOPIC`     | `Communications.Deliveries.Sms`     | Kafka topic for sms delivery messages                                                           |
+| `KAFKA_STORAGE_DELIVERY_TOPIC` | `Communications.Deliveries.Storage` | Kafka topic for delivery storage messages                                                       |
+| `KAFKA_WEB_DELIVERY_TOPIC`     | `Communications.Deliveries.Web`     | Kafka topic for web delivery messages                                                           |
 | `MAX_DELIVERY_TIME`            | `PT168H`                            | maximum time to wait for delivery to arrive (ISO 8601 duration)                                 |
 | `MAX_EVENT_LAG`                | `PT5S`                              | for `periodic` strategy, maximum lag before an event is considered late (ISO 8601 duration)     |
 | `MAX_EVENT_OUT_OF_ORDER`       | `PT5S`                              | for `bounded` strategy, maximum amount of time events can be out of order (ISO 8601 duration)   |

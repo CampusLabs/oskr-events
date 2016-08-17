@@ -42,7 +42,7 @@ ENV STATE_BACKEND_PATH           file:///tmp/state.db
 ENV KAFKA_BOOTSTRAP              kafka:9092
 ENV KAFKA_GROUP                  oskr-events
 ENV KAFKA_PART_TOPIC             Communications.MessageParts
-ENV KAFKA_EVENT_TOPIC            Communications.Events
+ENV KAFKA_DELIVERY_EVENT_TOPIC   Communications.Events.Deliveries
 ENV WATERMARKS                   periodic
 ENV MAX_PART_OUT_OF_ORDER        PT5S
 ENV MAX_EVENT_OUT_OF_ORDER       PT5S
