@@ -44,11 +44,11 @@ final case class Message(
   ): Option[Delivery] = {
     val content = templates.renderBase(address, this, cache)
     content.flatMap(c => {
-      val deliveryId = address.deliveryId
+      val deliveryIdOption = address.deliveryId
 
-      deliveryId.map(id => Delivery(
-        id, address.channel, senderIds, sentInterval, recipient.id, at,
-        Instant.now, tags, partIds, c
+      deliveryIdOption.map(deliveryId => Delivery(
+        deliveryId, id, address.channel, senderIds, sentInterval, recipient.id,
+        at, Instant.now, tags, partIds, c
       ))
     })
   }

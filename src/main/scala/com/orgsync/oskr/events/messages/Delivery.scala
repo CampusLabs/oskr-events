@@ -24,14 +24,15 @@ import org.json4s.JValue
 import org.threeten.extra.Interval
 
 case class Delivery(
-  id          : UUID,
-  channel     : ChannelType,
-  senderIds   : Set[String],
-  sentInterval: Interval,
-  recipientId : String,
-  scheduledAt : Instant,
-  processedAt : Instant,
-  tags        : Set[String],
-  partIds     : Set[String],
-  content     : JValue
+  id           : UUID,
+  deliverableId: UUID,
+  channel      : ChannelType,
+  senderIds    : Set[String],
+  sentInterval : Interval,
+  recipientId  : String,
+  scheduledAt  : Instant,
+  processedAt  : Instant,
+  tags         : Set[String],
+  partIds      : Set[String],
+  content      : JValue
 )

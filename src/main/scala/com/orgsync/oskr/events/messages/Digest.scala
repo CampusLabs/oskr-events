@@ -42,10 +42,10 @@ case class Digest(
   ): Option[Delivery] = {
     val content = templates.renderDigest(address, messages, cache)
     content.flatMap(c => {
-      val deliveryId = address.deliveryId
+      val deliveryIdOption = address.deliveryId
 
-      deliveryId.map(id => Delivery(
-        id, address.channel, senderIds, sentInterval, recipient.id,
+      deliveryIdOption.map(deliveryId => Delivery(
+        deliveryId, id, address.channel, senderIds, sentInterval, recipient.id,
         at, Instant.now, tags, partIds, c
       ))
     })
