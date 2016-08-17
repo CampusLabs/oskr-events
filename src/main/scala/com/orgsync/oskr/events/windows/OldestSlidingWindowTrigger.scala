@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package com.orgsync.oskr.events.streams.deliverable_events
+package com.orgsync.oskr.events.windows
 
 import org.apache.flink.streaming.api.windowing.time.Time
-import org.apache.flink.streaming.api.windowing.triggers.{Trigger, TriggerResult}
 import org.apache.flink.streaming.api.windowing.triggers.Trigger.TriggerContext
+import org.apache.flink.streaming.api.windowing.triggers.{Trigger, TriggerResult}
 import org.apache.flink.streaming.api.windowing.windows.TimeWindow
 
 class OldestSlidingWindowTrigger[T, W <: TimeWindow](

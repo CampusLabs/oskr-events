@@ -19,7 +19,8 @@ package com.orgsync.oskr.events.streams
 import java.time.Duration
 
 import com.orgsync.oskr.events.messages._
-import com.orgsync.oskr.events.streams.deliverable_events.{OldestSlidingWindowTrigger, UnreadApproximation}
+import com.orgsync.oskr.events.streams.unread_counts.UnreadApproximation
+import com.orgsync.oskr.events.windows.OldestSlidingWindowTrigger
 import org.apache.flink.api.scala._
 import org.apache.flink.configuration.Configuration
 import org.apache.flink.streaming.api.scala.{DataStream, SplitStream}

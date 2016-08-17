@@ -17,16 +17,18 @@
 package com.orgsync.oskr.events.streams
 
 import java.time.Duration
+import java.util.UUID
 
 import com.orgsync.oskr.events.messages._
 import com.orgsync.oskr.events.messages.events.Acknowledgement
+import com.orgsync.oskr.events.windows.OldestSlidingWindowTrigger
 import org.apache.flink.api.scala._
 import org.apache.flink.configuration.Configuration
+import org.apache.flink.streaming.api.datastream.CoGroupedStreams.TaggedUnion
 import org.apache.flink.streaming.api.scala.{DataStream, SplitStream}
-import org.apache.flink.streaming.api.windowing.assigners.GlobalWindows
-import org.apache.flink.streaming.api.windowing.evictors.TimeEvictor
+import org.apache.flink.streaming.api.windowing.assigners.SlidingProcessingTimeWindows
 import org.apache.flink.streaming.api.windowing.time.Time
-import org.apache.flink.streaming.api.windowing.triggers.CountTrigger
+import org.apache.flink.streaming.api.windowing.windows.TimeWindow
 
 object DeliverableEventStream {
   val SendEvents = "send"
@@ -50,9 +52,16 @@ object DeliverableEventStream {
         .toMillis
     )
 
+    val maxDeliverySlide = Time.milliseconds(maxDeliveryTime.toMilliseconds / 2)
+
     val ackIds = events
       .filter(_.action == Acknowledgement).name("filter_acks")
       .map(_.deliveryId).name("delivery_id")
+
+    val ackWindow = SlidingProcessingTimeWindows.of(maxDeliveryTime, maxDeliverySlide)
+    val ackTrigger = new OldestSlidingWindowTrigger[
+      TaggedUnion[(UUID, String, UUID), UUID],
+      TimeWindow](maxDeliveryTime, maxDeliverySlide)
 
     deliverables
       .flatMap(d => d.merge.channels.flatMap(c =>
@@ -62,9 +71,8 @@ object DeliverableEventStream {
       )).name("delivery_id")
       .join(ackIds)
       .where(_._3).equalTo(id => id)
-      .window(GlobalWindows.create())
-      .trigger(CountTrigger.of(1))
-      .evictor(TimeEvictor.of(maxDeliveryTime))
+      .window(ackWindow)
+      .trigger(ackTrigger)
       .apply((t, aid) => Right(Read(t._1, t._2)): Either[Send, Read]).name("read_event")
       .uid("read_events")
   }

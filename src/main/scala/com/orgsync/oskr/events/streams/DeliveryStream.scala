@@ -16,45 +16,24 @@
 
 package com.orgsync.oskr.events.streams
 
-import java.util.UUID
-
 import com.orgsync.oskr.events.messages._
 import com.orgsync.oskr.events.streams.deliveries.{AssignChannel, ScheduleChannelTrigger}
-import com.softwaremill.quicklens._
 import org.apache.flink.api.scala._
 import org.apache.flink.configuration.Configuration
 import org.apache.flink.streaming.api.scala.{DataStream, SplitStream}
 import org.apache.flink.streaming.api.windowing.assigners.GlobalWindows
 
 object DeliveryStream {
-  private def getDeliverablesWithIds(
-    deliverables: DataStream[Either[Message, Digest]]
-  ): DataStream[Either[Message, Digest]] = {
-    deliverables.map(deliverable => {
-      val channels = deliverable.merge.channels.map(c => {
-        val source = deliverable.merge.id + c.channel.name
-        val id = UUID.nameUUIDFromBytes(source.getBytes)
-        c.modify(_.deliveryId).setTo(Option(id))
-      })
-
-      deliverable match {
-        case Left(m) => Left(m.modify(_.channels).setTo(channels))
-        case Right(d) => Right(d.modify(_.channels).setTo(channels))
-      }
-    }: Either[Message, Digest]).name("add_delivery_ids")
-  }
-
   def getStream(
     deliverables     : DataStream[Either[Message, Digest]],
     deliverableEvents: SplitStream[Either[Send, Read]],
     configuration    : Configuration
   ): DataStream[Delivery] = {
-    val deliverablesWithIds = getDeliverablesWithIds(deliverables)
     val readEventIds = deliverableEvents
       .select(DeliverableEventStream.ReadEvents)
       .map(_.merge.id).name("deliverable_id")
 
-    deliverablesWithIds
+    deliverables
       .coGroup(readEventIds)
       .where(_.merge.id).equalTo(id => id)
       .window(GlobalWindows.create)
