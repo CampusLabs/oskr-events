@@ -49,7 +49,7 @@
 
     <properties>
         <flinkVersion>1.1.1</flinkVersion>
-        <handlebarsVersion>4.0.5</handlebarsVersion>
+        <handlebarsVersion>4.0.6</handlebarsVersion>
         <json4sVersion>3.4.0</json4sVersion>
     </properties>
 
@@ -113,6 +113,11 @@
             <groupId>org.threeten</groupId>
             <artifactId>threeten-extra</artifactId>
             <version>1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.clearspring.analytics</groupId>
+            <artifactId>stream</artifactId>
+            <version>2.9.5</version>
         </dependency>
     </dependencies>
 

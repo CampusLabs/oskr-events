@@ -16,65 +16,46 @@
 
 package com.orgsync.oskr.events.streams
 
-import java.time.Duration
 import java.util.UUID
 
-import com.orgsync.oskr.events.messages.events.Acknowledgement
 import com.orgsync.oskr.events.messages._
 import com.orgsync.oskr.events.streams.deliveries.{AssignChannel, ScheduleChannelTrigger}
 import com.softwaremill.quicklens._
 import org.apache.flink.api.scala._
 import org.apache.flink.configuration.Configuration
-import org.apache.flink.streaming.api.scala.DataStream
-import org.apache.flink.streaming.api.windowing.assigners.{GlobalWindows, SlidingProcessingTimeWindows}
-import org.apache.flink.streaming.api.windowing.time.Time
-import org.apache.flink.streaming.api.windowing.triggers.CountTrigger
-import org.apache.flink.streaming.api.windowing.windows.TimeWindow
+import org.apache.flink.streaming.api.scala.{DataStream, SplitStream}
+import org.apache.flink.streaming.api.windowing.assigners.GlobalWindows
 
 object DeliveryStream {
+  private def getDeliverablesWithIds(
+    deliverables: DataStream[Either[Message, Digest]]
+  ): DataStream[Either[Message, Digest]] = {
+    deliverables.map(deliverable => {
+      val channels = deliverable.merge.channels.map(c => {
+        val source = deliverable.merge.id + c.channel.name
+        val id = UUID.nameUUIDFromBytes(source.getBytes)
+        c.modify(_.deliveryId).setTo(Option(id))
+      })
+
+      deliverable match {
+        case Left(m) => Left(m.modify(_.channels).setTo(channels))
+        case Right(d) => Right(d.modify(_.channels).setTo(channels))
+      }
+    }: Either[Message, Digest]).name("add_delivery_ids")
+  }
+
   def getStream(
-    deliverables : DataStream[Either[Message, Digest]],
-    events       : DataStream[Event],
-    configuration: Configuration
+    deliverables     : DataStream[Either[Message, Digest]],
+    deliverableEvents: SplitStream[Either[Send, Read]],
+    configuration    : Configuration
   ): DataStream[Delivery] = {
-    val deliverablesWithIds =
-      deliverables.map(deliverable => {
-        val channels = deliverable.merge.channels.map(c => {
-          val source = deliverable.merge.id + c.channel.name
-          val id = UUID.nameUUIDFromBytes(source.getBytes)
-          c.modify(_.deliveryId).setTo(Option(id))
-        })
-
-        deliverable match {
-          case Left(m) => Left(m.modify(_.channels).setTo(channels))
-          case Right(d) => Right(d.modify(_.channels).setTo(channels))
-        }
-      }).asInstanceOf[DataStream[Either[Message, Digest]]]
-        .name("add_delivery_ids")
-
-    val ackEvents = events
-      .filter(_.action == Acknowledgement).name("filter_acks")
-
-    val maxDeliveryTime = Time.milliseconds(
-      Duration
-        .parse(configuration.getString("maxDeliveryTime", "PT168H"))
-        .toMillis
-    )
-
-    val deliverySlideTime = Time.milliseconds(maxDeliveryTime.toMilliseconds / 2)
-
-    val ackedDeliverableIds = deliverablesWithIds
-      .map(_.merge).name("to_deliverable")
-      .flatMap(d => d.channels.map(c => (d.id, c.deliveryId))).name("delivery_ids")
-      .join(ackEvents)
-      .where(_._2).equalTo(e => Option(e.deliveryId))
-      .window(SlidingProcessingTimeWindows.of(maxDeliveryTime, deliverySlideTime))
-      .trigger(CountTrigger.of[TimeWindow](1))
-      .apply((t, event) => t._1).name("acked_deliverable_ids")
-      .uid("acked_deliverable_ids")
+    val deliverablesWithIds = getDeliverablesWithIds(deliverables)
+    val readEventIds = deliverableEvents
+      .select(DeliverableEventStream.ReadEvents)
+      .map(_.merge.id)
 
     deliverablesWithIds
-      .coGroup(ackedDeliverableIds)
+      .coGroup(readEventIds)
       .where(_.merge.id).equalTo(id => id)
       .window(GlobalWindows.create)
       .trigger(new ScheduleChannelTrigger)

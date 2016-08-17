@@ -57,8 +57,17 @@ object Events {
     val messageStream = ungroupedStream.union(groupedStream)
     val digestedStream = new DigestedStream(configuration).getStream(messageStream)
 
-    val deliveryStream = DeliveryStream.getStream(digestedStream, eventStream, configuration)
-      .split(d => List(d.channel.name))
+    val deliverableEventStream = DeliverableEventStream.getStream(
+      digestedStream, eventStream, configuration
+    )
+
+    val unreadCountStream = UnreadCountStream.getStream(
+      deliverableEventStream, configuration
+    )
+
+    val deliveryStream = DeliveryStream.getStream(
+      digestedStream, deliverableEventStream, configuration
+    ).split(d => List(d.channel.name))
 
     List(Storage, Web, SMS, Push, Email).foreach(channel => {
       val topicName = Utilities.channelTopic(configuration, channel)
