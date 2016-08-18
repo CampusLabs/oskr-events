@@ -44,14 +44,14 @@ object Events {
     val backend = new RocksDBStateBackend(statePath)
     env.setStateBackend(backend)
 
-    val partStream = PartStream.getStream(env, configuration)
+    val expandedPartStream = ExpandedPartStream.getStream(env, configuration)
     val eventStream = DeliveryEventStream.getStream(env, configuration)
 
     val groupedStream = new GroupStream(configuration)
-      .getStream(partStream.select(PartStream.Grouped))
+      .getStream(expandedPartStream.select(ExpandedPartStream.Grouped))
 
-    val ungroupedStream = partStream
-      .select(PartStream.Ungrouped)
+    val ungroupedStream = expandedPartStream
+      .select(ExpandedPartStream.Ungrouped)
       .map(_.toMessage).name("to_message")
 
     val messageStream = ungroupedStream.union(groupedStream)

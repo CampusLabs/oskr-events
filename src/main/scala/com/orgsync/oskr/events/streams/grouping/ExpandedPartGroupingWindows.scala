@@ -20,7 +20,7 @@ import java.time.Duration
 import java.util
 
 import scala.collection.JavaConversions._
-import com.orgsync.oskr.events.messages.Part
+import com.orgsync.oskr.events.messages.ExpandedPart
 import org.apache.flink.api.common.ExecutionConfig
 import org.apache.flink.api.common.typeutils.TypeSerializer
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment
@@ -32,13 +32,13 @@ import org.apache.flink.streaming.api.windowing.windows.TimeWindow
 
 import scala.math.abs
 
-class PartGroupingWindows(defaultGap: Duration)
-  extends MergingWindowAssigner[Part, TimeWindow] {
+class ExpandedPartGroupingWindows(defaultGap: Duration)
+  extends MergingWindowAssigner[ExpandedPart, TimeWindow] {
 
   override def isEventTime: Boolean = true
 
   override def assignWindows(
-    part     : Part,
+    part     : ExpandedPart,
     timestamp: Long,
     windowAssignerContext: WindowAssignerContext
   ): util.Collection[TimeWindow] = {
@@ -53,8 +53,8 @@ class PartGroupingWindows(defaultGap: Duration)
 
   override def getDefaultTrigger(
     streamExecutionEnvironment: StreamExecutionEnvironment
-  ): Trigger[Part, TimeWindow] = {
-    EventTimeTrigger.create().asInstanceOf[Trigger[Part, TimeWindow]]
+  ): Trigger[ExpandedPart, TimeWindow] = {
+    EventTimeTrigger.create().asInstanceOf[Trigger[ExpandedPart, TimeWindow]]
   }
 
   override def getWindowSerializer(

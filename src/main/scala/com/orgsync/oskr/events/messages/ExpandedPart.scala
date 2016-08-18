@@ -17,14 +17,17 @@
 package com.orgsync.oskr.events.messages
 
 import java.time.{Duration, Instant}
+import java.util.UUID
 
-import com.orgsync.oskr.events.messages.parts.{Recipient, TemplateSet}
+import com.orgsync.oskr.events.messages.parts._
+import org.json4s.JsonAST.JArray
 import org.json4s._
+import org.threeten.extra.Interval
 
-case class Part(
+final case class ExpandedPart(
   id         : String,
   senderId   : String,
-  recipients : List[Recipient],
+  recipient  : Recipient,
   sentAt     : Instant,
   groupingKey: Option[String],
   groupingGap: Option[Duration],
@@ -32,11 +35,16 @@ case class Part(
   templates  : TemplateSet,
   data       : JValue
 ) {
-  def toExpandedParts: List[ExpandedPart] = {
-    recipients.map(r =>
-      ExpandedPart(
-        id, senderId, r, sentAt, groupingKey, groupingGap, tags, templates, data
-      )
+  def toMessage: Message = {
+    val idSource = recipient.id + id
+    val messageId = UUID.nameUUIDFromBytes(idSource.getBytes)
+
+    val sent = Interval.of(sentAt, sentAt)
+    val messageTags = tags.getOrElse(Set[String]())
+
+    Message(
+      messageId, sentAt, Set(senderId), recipient, sent, messageTags,
+      templates, Set(id), JArray(List(data))
     )
   }
 }

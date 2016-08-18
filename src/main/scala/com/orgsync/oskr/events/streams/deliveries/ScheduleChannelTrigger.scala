@@ -59,9 +59,10 @@ class ScheduleChannelTrigger[W <: Window]
     if (!initialized.value)
       maybeDeliverable.foreach {
         s => {
+          val channels = s.merge.recipient.channels
           initialized.update(true)
-          triggerCount.update(s.merge.channels.length)
-          s.merge.channels.foreach {
+          triggerCount.update(channels.length)
+          channels.foreach {
             c =>
               triggerContext.registerProcessingTimeTimer(now + c.delay.toMillis)
           }

@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package com.orgsync.oskr.events.streams.parts
+package com.orgsync.oskr.events.filters
 
 import java.io.Serializable
 import java.time.Duration
-import java.{lang, util}
 import java.util.concurrent.TimeUnit
+import java.{lang, util}
 
 import com.google.common.cache.{CacheBuilder, CacheLoader, LoadingCache}
 import org.apache.flink.api.common.functions.RichFilterFunction

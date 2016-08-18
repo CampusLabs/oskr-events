@@ -37,7 +37,7 @@ class ScheduleDigestTrigger[W <: Window] extends Trigger[Message, W] {
   ): TriggerResult = {
     val scheduledState = triggerContext.getPartitionedState(scheduledAt)
     val scheduled = scheduledState.value()
-    val at = message.digest.map(_.at).getOrElse(Instant.EPOCH)
+    val at = message.recipient.digest.map(_.at).getOrElse(Instant.EPOCH)
     val now = Instant.ofEpochMilli(timestamp)
 
     if (at.isBefore(now)) {

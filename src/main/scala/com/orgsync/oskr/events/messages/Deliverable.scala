@@ -26,7 +26,6 @@ trait Deliverable {
   val id: UUID
   val emittedAt: Instant
   val recipient: Recipient
-  val channels: List[ChannelAddress]
 
   def delivery(
     address: ChannelAddress,

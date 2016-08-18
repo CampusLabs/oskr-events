@@ -28,7 +28,6 @@ case class Digest(
   emittedAt   : Instant,
   senderIds   : Set[String],
   recipient   : Recipient,
-  channels    : List[ChannelAddress],
   sentInterval: Interval,
   tags        : Set[String],
   templates   : TemplateSet,

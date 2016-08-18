@@ -38,25 +38,24 @@ import scala.collection.mutable
 class DigestedStream(parameters: Configuration) {
   private def extractDigests(messageStream: DataStream[Message]): SplitStream[Message] = {
     messageStream.flatMap(message => {
-      val digestChannels = message.digest
+      val digestChannels = message.recipient.digest
         .map(_.channels).getOrElse(List[ChannelType]()).toSet
 
-      val (digestedAddr, immediateAddr) = message.channels.partition(address =>
-        digestChannels(address.channel)
-      )
+      val (digestedAddr, immediateAddr) = message.recipient.channels
+        .partition(address => digestChannels(address.channel))
 
       val messages = mutable.MutableList[Message]()
       if (digestedAddr.nonEmpty)
-        messages += message.modify(_.channels).setTo(digestedAddr)
+        messages += message.modify(_.recipient.channels).setTo(digestedAddr)
 
       if (immediateAddr.nonEmpty)
         messages += message
-          .modify(_.channels).setTo(immediateAddr)
-          .modify(_.digest).setTo(None)
+          .modify(_.recipient.channels).setTo(immediateAddr)
+          .modify(_.recipient.digest).setTo(None)
 
       messages
     }).name("split_digest")
-      .split(d => d.digest match {
+      .split(d => d.recipient.digest match {
       case Some(_) => List("digests")
       case None => List("immediate")
     })
@@ -71,7 +70,7 @@ class DigestedStream(parameters: Configuration) {
     val messages = messageIterable.toList.sortBy(_.sentInterval.getEnd)
     val emittedAt = messages
       .lastOption
-      .flatMap(_.digest)
+      .flatMap(_.recipient.digest)
       .map(_.at)
       .getOrElse(Instant.now)
 
@@ -98,8 +97,8 @@ class DigestedStream(parameters: Configuration) {
     val interval = sentInterval.getOrElse(Interval.of(Instant.EPOCH, Duration.ZERO))
 
     lastMessage.foreach(message => out.collect(Digest(
-      id, emittedAt, senderIds.toSet, message.recipient, message.channels,
-      interval, tags.toSet, message.templates, partIds.toSet, messages
+      id, emittedAt, senderIds.toSet, message.recipient, interval, tags.toSet,
+      message.templates, partIds.toSet, messages
     )))
   }
 

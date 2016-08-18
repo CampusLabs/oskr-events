@@ -19,8 +19,8 @@ package com.orgsync.oskr.events.streams
 import java.time.{Duration, Instant}
 import java.util.UUID
 
-import com.orgsync.oskr.events.messages.{Message, Part}
-import com.orgsync.oskr.events.streams.grouping.PartGroupingWindows
+import com.orgsync.oskr.events.messages.{Message, ExpandedPart}
+import com.orgsync.oskr.events.streams.grouping.ExpandedPartGroupingWindows
 import org.apache.flink.api.scala._
 import org.apache.flink.configuration.Configuration
 import org.apache.flink.streaming.api.scala.DataStream
@@ -43,7 +43,7 @@ class GroupStream(parameters: Configuration) {
   private val reducePartsWindow = (
     key         : (String, String),
     window      : TimeWindow,
-    partIterable: Iterable[Part],
+    partIterable: Iterable[ExpandedPart],
     out         : Collector[Message]
   ) => {
     val parts = partIterable.toList.sortBy(_.sentAt)
@@ -51,7 +51,7 @@ class GroupStream(parameters: Configuration) {
 
     val idBuf = new StringBuilder
     val senderIds = mutable.Set[String]()
-    var lastPart = Option.empty[Part]
+    var lastPart = Option.empty[ExpandedPart]
     val sentAt = mutable.TreeSet[Instant]()
     val tags = mutable.Set[String]()
     val partIds = mutable.Set[String]()
@@ -73,17 +73,16 @@ class GroupStream(parameters: Configuration) {
       val sentInterval = Interval.of(sentAt.firstKey, sentAt.lastKey)
 
       out.collect(Message(
-        id, emittedAt, senderIds.toSet, part.recipient, part.channels,
-        sentInterval, tags.toSet, part.digest, part.templates,
-        partIds.toSet, JArray(partData.toList)
+        id, emittedAt, senderIds.toSet, part.recipient, sentInterval,
+        tags.toSet, part.templates, partIds.toSet, JArray(partData.toList)
       ))
     })
   }
 
-  def getStream(partStream: DataStream[Part]): DataStream[Message] = {
+  def getStream(partStream: DataStream[ExpandedPart]): DataStream[Message] = {
     partStream
       .keyBy(p => (p.recipient.id, p.groupingKey.getOrElse("default")))
-      .window(new PartGroupingWindows(groupingGap))
+      .window(new ExpandedPartGroupingWindows(groupingGap))
       .allowedLateness(allowedLateness)
       .apply(reducePartsWindow).name("group_window")
       .uid("grouped_messages")

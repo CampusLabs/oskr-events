@@ -20,9 +20,10 @@ import java.time.Duration
 import java.util.UUID
 
 import com.orgsync.oskr.events.Utilities
+import com.orgsync.oskr.events.filters.DedupeFilterFunction
 import com.orgsync.oskr.events.messages.parts.ChannelAddress
-import com.orgsync.oskr.events.messages.Part
-import com.orgsync.oskr.events.streams.parts.{DedupeFilterFunction, ParsePart}
+import com.orgsync.oskr.events.messages.ExpandedPart
+import com.orgsync.oskr.events.streams.parts.ParsePart
 import com.orgsync.oskr.events.watermarks.{BoundedPartWatermarkAssigner, PeriodicPartWatermarkAssigner}
 import com.softwaremill.quicklens._
 import org.apache.flink.api.scala._
@@ -31,14 +32,14 @@ import org.apache.flink.streaming.api.scala.{SplitStream, StreamExecutionEnviron
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer09
 import org.apache.flink.streaming.util.serialization.SimpleStringSchema
 
-object PartStream {
+object ExpandedPartStream {
   val Grouped = "grouped"
   val Ungrouped = "ungrouped"
 
   def getStream(
     env          : StreamExecutionEnvironment,
     configuration: Configuration
-  ): SplitStream[Part] = {
+  ): SplitStream[ExpandedPart] = {
     val partSource = new FlinkKafkaConsumer09[String](
       configuration.getString("kafkaPartTopic", "Communications.MessageParts"),
       new SimpleStringSchema,
@@ -58,19 +59,20 @@ object PartStream {
     val dedupeCacheTime = Duration.parse(
       configuration.getString("dedupeCacheTime", "PT1H")
     )
-    val keyFunction = (s: Part) => (s.id, s.recipient.id)
+    val keyFunction = (s: ExpandedPart) => (s.id, s.recipient.id)
 
     env
       .addSource(partSource).name("part_source")
       .uid("part_source")
       .flatMap(new ParsePart(configuration)).name("parse_part")
       .assignTimestampsAndWatermarks(watermarkAssigner).name("assign_part_timestamp")
+      .flatMap(_.toExpandedParts).name("expand_parts")
       .keyBy(keyFunction)
-      .filter(new DedupeFilterFunction[Part, (String, String)](
+      .filter(new DedupeFilterFunction[ExpandedPart, (String, String)](
         keyFunction, dedupeCacheTime
       )).name("deduplicate_parts")
       .uid("deduplicate_parts")
-      .map(s => s.modify(_.channels).using(_.sortBy(_.delay))).name("sort_channels")
+      .map(_.modify(_.recipient.channels).using(_.sortBy(_.delay))).name("sort_channels")
       .split(s =>
         s.groupingKey match {
           case Some(_) => List(Grouped)

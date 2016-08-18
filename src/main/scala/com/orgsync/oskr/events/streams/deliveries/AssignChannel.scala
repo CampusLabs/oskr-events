@@ -39,7 +39,7 @@ class AssignChannel
   ): Unit = deliverables.asScala.take(1).foreach {
     deliverable =>
       val currentIndex = index.value
-      val channels = deliverable.merge.channels
+      val channels = deliverable.merge.recipient.channels
       val channelCount = channels.length
       val acked = deliverableIds.asScala.exists(id => true)
 

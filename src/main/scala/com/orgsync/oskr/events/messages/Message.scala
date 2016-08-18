@@ -29,10 +29,8 @@ final case class Message(
   emittedAt   : Instant,
   senderIds   : Set[String],
   recipient   : Recipient,
-  channels    : List[ChannelAddress],
   sentInterval: Interval,
   tags        : Set[String],
-  digest      : Option[DigestSpecification],
   templates   : TemplateSet,
   partIds     : Set[String],
   partData    : JArray
@@ -51,5 +49,8 @@ final case class Message(
     })
   }
 
-  def digestKey: String = this.digest.map(_.key).getOrElse("default")
+  def digestKey: String = this
+    .recipient
+    .digest
+    .map(_.key).getOrElse("default")
 }
