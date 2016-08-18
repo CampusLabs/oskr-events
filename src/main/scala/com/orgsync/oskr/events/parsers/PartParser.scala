@@ -21,10 +21,13 @@ import com.orgsync.oskr.events.serializers._
 import org.apache.flink.configuration.Configuration
 import org.json4s.DefaultFormats
 import org.json4s.jackson.JsonMethods._
+import org.slf4j.LoggerFactory
 
 import scala.util.{Failure, Success, Try}
 
 class PartParser(parameters: Configuration) {
+  val log = LoggerFactory.getLogger(this.getClass)
+
   val channelAddressSerializer = new ChannelAddressSerializer(parameters)
 
   val notNullFormats = new DefaultFormats {
@@ -43,7 +46,7 @@ class PartParser(parameters: Configuration) {
     parsed match {
       case Success(s) => Option(s)
       case Failure(e) =>
-        println(e.getMessage)
+        log.warn("unable to parse message part", e)
         None
     }
   }
