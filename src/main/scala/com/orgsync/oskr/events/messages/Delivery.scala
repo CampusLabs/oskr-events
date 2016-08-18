@@ -23,7 +23,7 @@ import com.orgsync.oskr.events.messages.parts.ChannelType
 import org.json4s.JValue
 import org.threeten.extra.Interval
 
-case class Delivery(
+final case class Delivery(
   deliverableId: UUID,
   channel      : ChannelType,
   senderIds    : Set[String],

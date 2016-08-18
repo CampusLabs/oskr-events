@@ -23,11 +23,17 @@ import com.orgsync.oskr.events.messages.delivery_events.DeliveryEventType
 import com.orgsync.oskr.events.messages.parts.ChannelType
 import org.json4s.JsonAST.JValue
 
-case class DeliveryEvent(
+final case class DeliveryEvent(
   deliverableId: UUID,
   recipientId  : String,
   channel      : ChannelType,
   action       : DeliveryEventType,
   at           : Instant,
   data         : Option[JValue]
-)
+) {
+  require(deliverableId != null)
+  require(recipientId != null)
+  require(channel != null)
+  require(action != null)
+  require(at != null)
+}

@@ -24,6 +24,6 @@ sealed trait DeliverableEvent {
   def recipientId: String
 }
 
-case class Send(id: UUID, recipientId: String) extends DeliverableEvent
+final case class Send(id: UUID, recipientId: String) extends DeliverableEvent
 
-case class Read(id: UUID, recipientId: String) extends DeliverableEvent
+final case class Read(id: UUID, recipientId: String) extends DeliverableEvent

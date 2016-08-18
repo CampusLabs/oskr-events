@@ -23,7 +23,7 @@ import com.orgsync.oskr.events.messages.parts.{ChannelAddress, Recipient, Templa
 import com.orgsync.oskr.events.streams.deliveries.TemplateCache
 import org.threeten.extra.Interval
 
-case class Digest(
+final case class Digest(
   id          : UUID,
   emittedAt   : Instant,
   senderIds   : Set[String],

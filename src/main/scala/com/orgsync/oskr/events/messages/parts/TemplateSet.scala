@@ -30,6 +30,10 @@ final case class TemplateSet(
   digestBase  : ChannelTemplateMap,
   digestLayout: ChannelTemplateMap
 ) {
+  require(base != null)
+  require(digestBase != null)
+  require(digestLayout != null)
+
   def renderBase(
     address: ChannelAddress,
     message: Message,

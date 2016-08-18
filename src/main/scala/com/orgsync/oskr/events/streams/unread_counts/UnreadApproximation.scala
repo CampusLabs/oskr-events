@@ -21,7 +21,7 @@ import com.orgsync.oskr.events.messages.{DeliverableEvent, Read, Send}
 
 import scala.math._
 
-case class UnreadApproximation(
+final case class UnreadApproximation(
   sent: HyperLogLogPlus,
   read: HyperLogLogPlus
 ) {

@@ -41,11 +41,11 @@ class ChannelAddressSerializer(parameters: Configuration)
       }
 
       channelType match {
-        case Storage => StorageChannelAddress(a, delay, None)
-        case Web => WebChannelAddress(a, delay, None)
-        case Push => PushChannelAddress(a, delay, None)
-        case SMS => SMSChannelAddress(a, delay, None)
-        case Email => EmailChannelAddress(a, delay, None)
+        case Storage => StorageChannelAddress(a, delay)
+        case Web => WebChannelAddress(a, delay)
+        case Push => PushChannelAddress(a, delay)
+        case SMS => SMSChannelAddress(a, delay)
+        case Email => EmailChannelAddress(a, delay)
       }
   }, {
     case channelAddress: ChannelAddress =>

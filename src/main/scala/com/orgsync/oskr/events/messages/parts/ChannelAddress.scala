@@ -25,46 +25,42 @@ sealed trait ChannelAddress {
   def address: String
 
   def delay: Duration
+
+  require(address != null)
+  require(delay != null)
 }
 
 final case class StorageChannelAddress(
   address   : String,
-  delay     : Duration,
-  deliveryId: Option[UUID]
+  delay     : Duration
 ) extends ChannelAddress {
   val channel = Storage
 }
 
 final case class WebChannelAddress(
   address   : String,
-  delay     : Duration,
-  deliveryId: Option[UUID]
+  delay     : Duration
 ) extends ChannelAddress {
   val channel = Web
 }
 
 final case class PushChannelAddress(
   address   : String,
-  delay     : Duration,
-  deliveryId: Option[UUID]
+  delay     : Duration
 ) extends ChannelAddress {
   val channel = Push
 }
 
 final case class SMSChannelAddress(
   address   : String,
-  delay     : Duration,
-  deliveryId: Option[UUID]
+  delay     : Duration
 ) extends ChannelAddress {
   val channel = SMS
 }
 
 final case class EmailChannelAddress(
   address   : String,
-  delay     : Duration,
-  deliveryId: Option[UUID]
+  delay     : Duration
 ) extends ChannelAddress {
   val channel = Email
 }
-
-

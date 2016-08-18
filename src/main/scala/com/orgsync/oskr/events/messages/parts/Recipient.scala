@@ -18,9 +18,13 @@ package com.orgsync.oskr.events.messages.parts
 
 import org.json4s.JValue
 
-case class Recipient(
+final case class Recipient(
   id      : String,
   data    : JValue,
   digest  : Option[DigestSpecification],
   channels: List[ChannelAddress]
-)
+) {
+  require(id != null)
+  require(data != null)
+  require(channels != null)
+}

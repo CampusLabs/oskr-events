@@ -22,4 +22,8 @@ final case class DigestSpecification(
   key     : String,
   at      : Instant,
   channels: List[ChannelType]
-)
+) {
+  require(key != null)
+  require(at != null)
+  require(channels != null)
+}

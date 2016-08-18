@@ -21,7 +21,7 @@ import java.time.{Duration, Instant}
 import com.orgsync.oskr.events.messages.parts.{Recipient, TemplateSet}
 import org.json4s._
 
-case class Part(
+final case class Part(
   id         : String,
   senderId   : String,
   recipients : List[Recipient],
@@ -32,6 +32,13 @@ case class Part(
   templates  : TemplateSet,
   data       : JValue
 ) {
+  require(id != null)
+  require(senderId != null)
+  require(recipients != null)
+  require(sentAt != null)
+  require(templates != null)
+  require(data != null)
+
   def toExpandedParts: List[ExpandedPart] = {
     recipients.map(r =>
       ExpandedPart(
