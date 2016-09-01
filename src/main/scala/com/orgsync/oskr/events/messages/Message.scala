@@ -30,6 +30,7 @@ final case class Message(
   senderIds   : Set[String],
   recipient   : Recipient,
   sentInterval: Interval,
+  digestKey   : String,
   tags        : Set[String],
   templates   : TemplateSet,
   partIds     : Set[String],
@@ -48,9 +49,4 @@ final case class Message(
       )
     })
   }
-
-  def digestKey: String = this
-    .recipient
-    .digest
-    .map(_.key).getOrElse("default")
 }

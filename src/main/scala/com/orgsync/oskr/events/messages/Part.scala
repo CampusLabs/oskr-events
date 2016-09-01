@@ -22,17 +22,18 @@ import com.orgsync.oskr.events.messages.parts.{Recipient, TemplateSet}
 import org.json4s._
 
 final case class Part(
-  id         : String,
-  senderId   : String,
-  recipients : List[Recipient],
-  sentAt     : Instant,
-  groupingKey: Option[String],
-  groupingGap: Option[Duration],
-  tags       : Option[Set[String]],
-  templates  : TemplateSet,
-  data       : JValue
+  specificationId: String,
+  senderId       : String,
+  recipients     : List[Recipient],
+  sentAt         : Instant,
+  groupingKey    : Option[String],
+  groupingGap    : Option[Duration],
+  digestKey      : Option[String],
+  tags           : Option[Set[String]],
+  templates      : TemplateSet,
+  data           : JValue
 ) {
-  require(id != null)
+  require(specificationId != null)
   require(senderId != null)
   require(recipients != null)
   require(sentAt != null)
@@ -40,9 +41,12 @@ final case class Part(
   require(data != null)
 
   def toExpandedParts: List[ExpandedPart] = {
+    val dKey = digestKey.getOrElse("default"
+    )
     recipients.map(r =>
       ExpandedPart(
-        id, senderId, r, sentAt, groupingKey, groupingGap, tags, templates, data
+        specificationId, senderId, r, sentAt, groupingKey, groupingGap, dKey,
+        tags, templates, data
       )
     )
   }

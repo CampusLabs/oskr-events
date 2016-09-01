@@ -74,7 +74,8 @@ class GroupStream(parameters: Configuration) {
 
       out.collect(Message(
         id, emittedAt, senderIds.toSet, part.recipient, sentInterval,
-        tags.toSet, part.templates, partIds.toSet, JArray(partData.toList)
+        part.digestKey, tags.toSet, part.templates, partIds.toSet,
+        JArray(partData.toList)
       ))
     })
   }

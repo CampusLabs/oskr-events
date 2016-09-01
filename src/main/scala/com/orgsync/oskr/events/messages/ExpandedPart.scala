@@ -31,6 +31,7 @@ final case class ExpandedPart(
   sentAt     : Instant,
   groupingKey: Option[String],
   groupingGap: Option[Duration],
+  digestKey  : String,
   tags       : Option[Set[String]],
   templates  : TemplateSet,
   data       : JValue
@@ -43,7 +44,7 @@ final case class ExpandedPart(
     val messageTags = tags.getOrElse(Set[String]())
 
     Message(
-      messageId, sentAt, Set(senderId), recipient, sent, messageTags,
+      messageId, sentAt, Set(senderId), recipient, sent, digestKey, messageTags,
       templates, Set(id), JArray(List(data))
     )
   }

@@ -19,11 +19,9 @@ package com.orgsync.oskr.events.messages.parts
 import java.time.Instant
 
 final case class DigestSpecification(
-  key     : String,
   at      : Instant,
   channels: List[ChannelType]
 ) {
-  require(key != null)
   require(at != null)
   require(channels != null)
 }
