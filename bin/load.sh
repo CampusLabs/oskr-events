@@ -63,6 +63,8 @@ function run() {
   args[smsChannelDelay]=$SMS_CHANNEL_DELAY
   args[storageChannelDelay]=$STORAGE_CHANNEL_DELAY
   args[stateBackendPath]=$STATE_BACKEND_PATH
+  args[unreadTime]=$UNREAD_TIME
+  args[unreadSlide]=$UNREAD_SLIDE
   args[watermarks]=$WATERMARKS
   args[webChannelDelay]=$WEB_CHANNEL_DELAY
 

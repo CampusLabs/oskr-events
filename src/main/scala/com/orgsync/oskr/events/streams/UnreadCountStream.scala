@@ -80,7 +80,11 @@ object UnreadCountStream {
         .toMillis
     )
 
-    val unreadSlide = Time.milliseconds(unreadTime.toMilliseconds / 2)
+    val unreadSlide = Time.milliseconds(
+      Duration
+        .parse(configuration.getString("unreadSlide", "PT24H"))
+        .toMillis
+    )
 
     val eventTrigger = new OldestSlidingWindowTrigger[Either[Send, Read], TimeWindow](
       unreadTime, unreadSlide

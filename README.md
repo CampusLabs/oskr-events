@@ -39,6 +39,8 @@ A Flink-based service for more humane notifications. Work in progress.
 | `SMS_CHANNEL_DELAY`            | `PT30S`                             | default delay before sending a message to SMS channel (ISO 8601 duration)                       |
 | `STORAGE_CHANNEL_DELAY`        | `PT0S`                              | default delay before sending a message to storage channel (ISO 8601 duration)                   |
 | `STATE_BACKEND_PATH`           | `file:///tmp/state.db`              | path to state database (file or HDFS)                                                           |
+| `UNREAD_TIME`                  | `PT168H`                            | unread message count window duration                                                            |
+| `UNREAD_SLIDE`                 | `PT24H`                             | unread message count window update interval                                                     |
 | `WATERMARKS`                   | `periodic`                          | event time watermarking strategy, either `periodic` or `bounded`                                |
 | `WEB_CHANNEL_DELAY`            | `PT0S`                              | default delay before sending a message to web channel (ISO 8601 duration)                       |
 

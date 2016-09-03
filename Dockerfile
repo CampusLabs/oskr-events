@@ -56,6 +56,8 @@ ENV EMAIL_CHANNEL_DELAY          PT1M
 ENV DEDUPE_CACHE_TIME            PT1H
 ENV ALLOWED_LATENESS             PT1H
 ENV GROUPING_GAP                 PT5M
+ENV UNREAD_TIME                  PT168H
+ENV UNREAD_SLIDE                 PT24H
 ENV KAFKA_STORAGE_DELIVERY_TOPIC Communications.Deliveries.Storage
 ENV KAFKA_WEB_DELIVERY_TOPIC     Communications.Deliveries.Web
 ENV KAFKA_PUSH_DELIVERY_TOPIC    Communications.Deliveries.Push
