@@ -38,12 +38,12 @@ object UnreadCountStream {
     state           : UnreadState,
     deliverableEvent: Either[Send, Read]
   ) => {
-    val lastEvent = deliverableEvent match {
-      case Left(_) => "send"
-      case Right(_) => "read"
+    val mergedEvent = deliverableEvent.merge
+    val lastEvent = mergedEvent match {
+      case _: Send => "send"
+      case _: Read => "read"
     }
 
-    val mergedEvent = deliverableEvent.merge
     state.unread.add(mergedEvent)
 
     val oldStart = state.interval.getStart
