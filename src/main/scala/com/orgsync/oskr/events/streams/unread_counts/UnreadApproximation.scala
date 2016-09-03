@@ -27,8 +27,8 @@ final case class UnreadApproximation(
 ) {
   def add(deliverableEvent: DeliverableEvent): Boolean = {
     deliverableEvent match {
-      case Send(id, rid) => sent.offer(id)
-      case Read(id, rid) => read.offer(id)
+      case Send(id, _, _) => sent.offer(id)
+      case Read(id, _, _) => read.offer(id)
     }
   }
 
