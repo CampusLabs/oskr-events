@@ -17,24 +17,13 @@
 package com.orgsync.oskr.events.messages
 
 import java.time.Instant
-import java.util.UUID
 
-sealed trait DeliverableEvent {
-  def id: UUID
+import org.threeten.extra.Interval
 
-  def recipientId: String
-
-  def at: Instant
-}
-
-final case class Send(
-  id: UUID,
+case class RecipientEvent(
   recipientId: String,
-  at: Instant
-) extends DeliverableEvent
-
-final case class Read(
-  id: UUID,
-  recipientId: String,
-  at: Instant
-) extends DeliverableEvent
+  event: String,
+  at: Instant,
+  unreadInterval: Interval,
+  unreadEstimate: Long
+)

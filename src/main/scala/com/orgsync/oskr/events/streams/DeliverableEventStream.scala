@@ -29,7 +29,9 @@ object DeliverableEventStream {
     deliverables: DataStream[Either[Message, Digest]]
   ): DataStream[Either[Send, Read]] = deliverables
     .map(d =>
-      Left(Send(d.merge.id, d.merge.recipient.id)): Either[Send, Read]
+      Left(Send(
+        d.merge.id, d.merge.recipient.id, d.merge.emittedAt
+      )): Either[Send, Read]
     ).name("send_event")
 
   private def getReadEvents(
@@ -37,7 +39,9 @@ object DeliverableEventStream {
   ): DataStream[Either[Send, Read]] = {
     events
       .filter(_.action == Acknowledgement).name("filter_acks")
-      .map(e => Right(Read(e.deliverableId, e.recipientId)): Either[Send, Read])
+      .map(e => Right(Read(
+        e.deliverableId, e.recipientId, e.at
+      )): Either[Send, Read])
       .name("read_event")
   }
 

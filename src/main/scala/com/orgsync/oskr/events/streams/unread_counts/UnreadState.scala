@@ -14,27 +14,19 @@
  * limitations under the License.
  */
 
-package com.orgsync.oskr.events.messages
+package com.orgsync.oskr.events.streams.unread_counts
 
-import java.time.Instant
-import java.util.UUID
+import com.orgsync.oskr.events.messages.RecipientEvent
+import org.threeten.extra.Interval
 
-sealed trait DeliverableEvent {
-  def id: UUID
-
-  def recipientId: String
-
-  def at: Instant
+case class UnreadState(
+  recipientId: String,
+  lastEvent: String,
+  interval: Interval,
+  unread: UnreadApproximation
+) {
+  def toRecipientEvent = RecipientEvent(
+    recipientId, lastEvent, interval.getEnd, interval,
+    unread.unreadApproximation
+  )
 }
-
-final case class Send(
-  id: UUID,
-  recipientId: String,
-  at: Instant
-) extends DeliverableEvent
-
-final case class Read(
-  id: UUID,
-  recipientId: String,
-  at: Instant
-) extends DeliverableEvent
