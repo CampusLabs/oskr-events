@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM quay.io/orgsync/flink:1.1.1
+FROM quay.io/orgsync/flink:1.1.2
 
 WORKDIR /code
 COPY . /code/

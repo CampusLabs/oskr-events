@@ -48,7 +48,7 @@
     </pluginRepositories>
 
     <properties>
-        <flinkVersion>1.1.1</flinkVersion>
+        <flinkVersion>1.1.2</flinkVersion>
         <handlebarsVersion>4.0.6</handlebarsVersion>
         <json4sVersion>3.4.0</json4sVersion>
     </properties>
