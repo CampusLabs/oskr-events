@@ -61,7 +61,7 @@ object Events {
       digestedStream, eventStream
     )
 
-    val unreadCountStream = UnreadCountStream.getStream(
+    val recipientEventStream = new RecipientEventStream(configuration).getStream(
       deliverableEventStream, configuration
     )
 

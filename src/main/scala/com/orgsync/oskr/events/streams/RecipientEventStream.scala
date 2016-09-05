@@ -19,7 +19,7 @@ package com.orgsync.oskr.events.streams
 import java.time.{Duration, Instant}
 
 import com.orgsync.oskr.events.messages._
-import com.orgsync.oskr.events.streams.unread_counts.{UnreadApproximation, UnreadState}
+import com.orgsync.oskr.events.streams.recipient_events.{SerializeRecipientEvent, UnreadApproximation, UnreadState}
 import com.orgsync.oskr.events.windows.OldestSlidingWindowTrigger
 import org.apache.flink.api.scala._
 import org.apache.flink.configuration.Configuration
@@ -29,8 +29,11 @@ import org.apache.flink.streaming.api.windowing.time.Time
 import org.apache.flink.streaming.api.windowing.windows.TimeWindow
 import org.threeten.extra.Interval
 
-object UnreadCountStream {
-  private def initialHLLState = UnreadState(
+class RecipientEventStream(configuration: Configuration) {
+  private val kafkaTopic = configuration.getString("kafkaRecipientEventTopic",
+    "Communications.Events.Recipients")
+
+  private val initialHLLState = UnreadState(
     "", "", Interval.of(Instant.MIN, Instant.MIN), UnreadApproximation()
   )
 
@@ -90,12 +93,19 @@ object UnreadCountStream {
       unreadTime, unreadSlide
     )
 
-    deliverableEvents
+    val events = deliverableEvents
       .keyBy(_.merge.recipientId)
       .window(SlidingProcessingTimeWindows.of(unreadTime, unreadSlide))
       .trigger(eventTrigger)
       .fold(initialHLLState)(foldHLLFn).name("unread_window")
       .uid("unread_approximations")
       .map(_.toRecipientEvent).name("unread")
+
+    events
+      .map(new SerializeRecipientEvent)
+      .addSink(new KafkaSink(configuration).sink(kafkaTopic))
+      .name("recipient_event_sink")
+
+    events
   }
 }

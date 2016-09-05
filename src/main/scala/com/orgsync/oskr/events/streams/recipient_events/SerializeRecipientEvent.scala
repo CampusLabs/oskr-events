@@ -14,19 +14,21 @@
  * limitations under the License.
  */
 
-package com.orgsync.oskr.events.streams.unread_counts
+package com.orgsync.oskr.events.streams.recipient_events
 
 import com.orgsync.oskr.events.messages.RecipientEvent
-import org.threeten.extra.Interval
+import com.orgsync.oskr.events.serializers.{InstantSerializer, IntervalSerializer}
+import org.apache.flink.api.common.functions.RichMapFunction
+import org.apache.flink.configuration.Configuration
+import org.json4s._
+import org.json4s.jackson.Serialization.write
 
-case class UnreadState(
-  recipientId: String,
-  lastEvent: String,
-  interval: Interval,
-  unread: UnreadApproximation
-) {
-  def toRecipientEvent = RecipientEvent(
-    recipientId, lastEvent, interval.getEnd, interval,
-    unread.unreadApproximation
-  )
+class SerializeRecipientEvent extends RichMapFunction[RecipientEvent, String] {
+  implicit var formats: Formats = _
+
+  override def map(in: RecipientEvent): String = write(in)
+
+  override def open(parameters: Configuration): Unit = {
+    formats = DefaultFormats + InstantSerializer + IntervalSerializer
+  }
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.orgsync.oskr.events.streams.unread_counts
+package com.orgsync.oskr.events.streams.recipient_events
 
 import com.clearspring.analytics.stream.cardinality.HyperLogLogPlus
 import com.orgsync.oskr.events.messages.{DeliverableEvent, Read, Send}
